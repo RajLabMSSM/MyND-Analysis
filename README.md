@@ -10,4 +10,4 @@ MyND Project
 RESULT PAGES
 **************************************
 
-[Quality Control and Exploratory Analysis](): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots. 
+[Quality Control and Exploratory Analysis]("https://github.com/RajLabMSSM/MyND-Analysis/blob/master/mynd.qc2.html"): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots. 
