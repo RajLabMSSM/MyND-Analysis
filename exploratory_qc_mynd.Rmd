@@ -40,7 +40,7 @@ if(!require("gplots")) install.packages("gplots"); library("gplots")
 if(!require("Hmisc")) install.packages("Hmisc"); library("Hmisc")
 if(!require("amap")) BiocManager::install("amap"); library("amap")
 if(!require("ggfortify")) BiocManager::install("ggfortify"); library("ggfortify")
-
+if(!require("ggrepel")) BiocManager::install("ggrepel"); library("ggrepel")
 knitr::opts_chunk$set( 
   warning=FALSE,
   message=FALSE,
@@ -125,11 +125,11 @@ title("Barplot of library sizes")
 #plotMDS(x)
 
 #png(paste0(work_plots, "MDS.png"), width = 8, height = 6, res = 300, units = "in")
-col.group <- mynd_metadata$Mapped
+col.group <- mynd_metadata$status
 levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
 col.group <- as.character(col.group)
 plotMDS(mynd_voom, col= col.group)
-legend("bottomleft", legend = levels(mynd_metadata$Mapped))
+legend("bottomleft", legend = levels(mynd_metadata$status))
 title("MDS by Status")
 #dev.off()
 ```
@@ -282,4 +282,15 @@ plot(hcluster(mynd_voom_t, method= "spearman", link="average" ),
      cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, main= "Hierarchical Clustering", 
      sub = "Function: hcluster, Method: Spearman", xlab = "samples")
 #dev.off()
+```
+
+### Sex Check UTY vs XIST
+```{r sex check, echo=TRUE, fig.width=20, fig.height=10, res=300}
+total = merge(mynd_voom_t, mynd_metadata, by = 0)
+total$mismatch = ""
+labelIndicesWeWant <- total$gender  == "M" & total$ENSG00000229807 > 5 | total$gender ==  "F" & total$ENSG00000183878 > 0
+total$mismatch[labelIndicesWeWant] <- as.character(total$Row.names[labelIndicesWeWant])
+
+p = ggplot(total, aes(x = ENSG00000229807, y = ENSG00000183878, color = gender, label = mismatch))
+p + geom_point() + geom_text_repel()
 ```
