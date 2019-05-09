@@ -1,0 +1,89 @@
+---
+title: "MyND Variance Partition"
+subtitle: " "
+author: |
+ | Evan Udine
+ | Elisa Navarro
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   smooth_scroll: true
+   number_sections: false
+   self_contained: true  
+---
+
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+if(!require("variancePartition")) BiocManager::install("variancePartition"); library("variancePartition")
+if(!require("doParallel")) install.packages("doParallel"); library("doParallel")
+knitr::opts_chunk$set( 
+  warning=FALSE,
+  message=FALSE,
+  results = 'hide',
+  error = FALSE,
+  tidy = FALSE,
+  fig.show = "hold")
+```
+
+## Input data
+```{r load.data, echo=TRUE}
+#load reads:
+#If tpms:
+geneExp <- read.table("/hpc/users/navare04/pd-omics/data/mynd/qc/mynd_tpms.txt", header = TRUE, row.names = 1, check.names = F)
+
+#Load covariates
+info <- read.table("/hpc/users/navare04/pd-omics/data/mynd/metadata_pd_batch1_batch2.txt", header = TRUE, row.names = 1)
+
+info$Exonic.Rate = 100*info$Exonic.Rate
+info$rRNA.rate=100*info$rRNA.rate
+info$End.2.Mapping.Rate=100*info$End.2.Mapping.Rate
+info$Intergenic.Rate=100*info$Intergenic.Rate
+info$Intronic.Rate=100*info$Intronic.Rate
+info$Expression.Profiling.Efficiency=100*info$Expression.Profiling.Efficiency
+info$Mapped=info$Mapped/100000
+info$batch=as.factor(info$batch)
+info$library_batch=as.factor(info$library_batch)
+info$lane=as.factor(info$lane)
+info$season=as.factor(info$season)
+info1 <- info[colnames(geneExp),]
+
+#After sure that they are similar, force them.
+identical(colnames(geneExp), rownames(info1))
+```
+
+### Violin Plot
+```{r violion.partition, echo=TRUE, fig.width=14, fig.height=8, res = 300}
+
+keep.exp <- rowSums(geneExp > 1) >= 0.3*ncol(geneExp)
+ge <- geneExp[keep.exp, ] #Let's check if that's a good threshold
+
+#Variables to run Variance Partition. Remember (1|..) for factors!
+form <- ~(1|status) + (1|gender) + (1|process_location) + (1|ethnicity) + (1|batch) + (1|library_batch) + (1|lane) + (1|season) + (1|dna_cleaning) + age + rRNA.rate + Exonic.Rate + Mapped + rin_value + total_rna + pbmc_counts + monocyte_count + End.2.Mapping.Rate + Intergenic.Rate + Mean.Per.Base.Cov.
+
+#Variables to do the diagram:
+form_1 <- ~ status + gender + process_location + ethnicity + batch + library_batch + lane + season + age + rRNA.rate + Exonic.Rate + Mapped + rin_value + total_rna + dna_cleaning + pbmc_counts + monocyte_count + End.2.Mapping.Rate + Intergenic.Rate + Mean.Per.Base.Cov.
+
+#The variance partiation run:
+varPart <- fitExtractVarPartModel( ge, form, info1 )
+vp <- sortCols ( varPart )
+plotVarPart ( vp )
+```
+
+### Correlation
+```{r heatmap.partition, echo=TRUE, fig.width=10, fig.height=6, res = 300}
+#Diagram for correlation between variables:
+
+C= canCorPairs(form_1, info1)
+plotCorrMatrix( C )
+```
