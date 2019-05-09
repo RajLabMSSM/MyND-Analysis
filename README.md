@@ -12,4 +12,4 @@ RESULT PAGES
 
 [Quality Control and Exploratory Analysis](https://rajlabmssm.github.io/MyND-Analysis/mynd.qc2.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
 
-[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/mynd.variancepartition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
+[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/mynd.varianc_partition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
