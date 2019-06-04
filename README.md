@@ -9,7 +9,7 @@ MyND Project
 **************************************
 RESULT PAGES - Updated RAPiD
 **************************************
-[MultiQC]: Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
+[MultiQC](https://rajlabmssm.github.io/MyND-Analysis/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
 
 [Quality Control and Exploratory Analysis]: Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
 
