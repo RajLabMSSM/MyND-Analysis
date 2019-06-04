@@ -7,7 +7,17 @@ MyND Project
 > This includes code and plots. Exploratory analysis and intermediate processing files are too large for this repository.
 
 **************************************
-RESULT PAGES
+RESULT PAGES - Updated RAPiD
+**************************************
+[MultiQC]
+
+[Quality Control and Exploratory Analysis](https://rajlabmssm.github.io/MyND-Analysis/mynd.qc2.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
+
+[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/mynd.variance_partition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
+
+
+**************************************
+RESULT PAGES - OLD RAPiD
 **************************************
 
 [Quality Control and Exploratory Analysis](https://rajlabmssm.github.io/MyND-Analysis/mynd.qc2.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
