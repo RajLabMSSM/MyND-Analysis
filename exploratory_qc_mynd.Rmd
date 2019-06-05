@@ -18,12 +18,10 @@ output:
    smooth_scroll: true
    number_sections: false
 self_contained: true
----
-
-> Ensembl 70 |
-> Gencode 19 . 
+--- 
 
 ```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+sessionInfo()
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 if(!require("dplyr")) install.packages("dplyr"); library("dplyr")
@@ -38,7 +36,7 @@ if(!require("tidyverse")) install.packages("tidyverse"); library("tidyverse")
 if(!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer")
 if(!require("gplots")) install.packages("gplots"); library("gplots")
 if(!require("Hmisc")) install.packages("Hmisc"); library("Hmisc")
-if(!require("amap")) BiocManager::install("amap"); library("amap")
+#if(!require("amap")) BiocManager::install("amap"); library("amap")
 if(!require("ggfortify")) BiocManager::install("ggfortify"); library("ggfortify")
 if(!require("ggrepel")) BiocManager::install("ggrepel"); library("ggrepel")
 knitr::opts_chunk$set( 
@@ -48,6 +46,7 @@ knitr::opts_chunk$set(
   error = FALSE,
   tidy = FALSE,
   fig.show = "hold")
+work_plots = "/sc/hydra/projects/pd-omics/mynd/qc/exploratory_analyses/"
 ```
 
 ## Expression table 
@@ -56,23 +55,53 @@ knitr::opts_chunk$set(
 #Preparing the expression table
 ####################################
 
-#dir = "/hpc/users/udinee01/pd-omics/data/mynd/rsem"
+## Set working directory for first batch of data and import rsem data ##
+dir = "/sc/hydra/projects/pd-omics/mynd/data/PBG-2097"
+samples = read.table("/sc/hydra/projects/pd-omics/mynd/qc/samples.batch1", header = F, check.names = F)
+sample = samples$V1
+files = file.path(dir, sample, "Processed/RAPiD/rsem", paste0(sample, ".genes.results"))
+names(files) = sample
+txi.rsem = tximport(files, type = "rsem")
+counts1 = data.frame(txi.rsem$counts, check.names = F)
+tpms1 = data.frame(txi.rsem$abundance, check.names = F)
 
-#samples = read.table("/hpc/users/udinee01/pd-omics/data/mynd/metadata_pd_batch1_batch2.txt", header = T, check.names = F)
-#sample = samples$id
-#files = file.path(dir, sample, paste0(sample, ".genes.results"))
-#all(file.exists(files))
-#names(files) = samples$id
-#txi.rsem = tximport(files, type = "rsem")
+## Repeat for the second batch of data ##
+dir = "/sc/hydra/projects/pd-omics/mynd/data/PBG-2022"
+samples = read.table("/sc/hydra/projects/pd-omics/mynd/qc/samples.batch2", header = F, check.names = F)
+sample = samples$V1
+files = file.path(dir, sample, "Processed/RAPiD/rsem", paste0(sample, ".genes.results"))
+names(files) = sample
+txi.rsem1 = tximport(files, type = "rsem")
+counts2 = data.frame(txi.rsem1$counts, check.names = F)
+tpms2 = data.frame(txi.rsem1$abundance, check.names = F)
 
-#counts = data.frame(txi.rsem$counts, check.names = F)
-#tpms = data.frame(txi.rsem$abundance, check.names = F)
+## We need to change sample names because of overlap between batches. We will append the batch name to the sample ID in the count matrix and then merge the two datasets ##
 
-counts = read.table('/hpc/users/udinee01/pd-omics/data/mynd/qc/mynd_counts.txt', header = T, row.names = 1, check.names = F)
-tpms = read.table('/hpc/users/udinee01/pd-omics/data/mynd/qc/mynd_tpms.txt', header = T, row.names = 1, check.names = F)
-mynd_metadata = read.table('/hpc/users/udinee01/pd-omics/data/mynd/metadata_pd_batch1_batch2.txt', header = T, row.names = 1, check.names = F)
-#write.table(counts, "mynd_counts.txt", quote = F, sep = "\t")
-#write.table(tpms, "mynd_tpms.txt", quote = F, sep = "\t")
+colnames(counts1) <- paste(colnames(counts1), "1", sep = "_")
+colnames(tpms1) <- paste(colnames(tpms1), "1", sep = "_")
+colnames(counts2) <- paste(colnames(counts2), "2", sep = "_")
+colnames(tpms2) <- paste(colnames(tpms2), "2", sep = "_")
+dim(counts1)
+dim(counts2)
+dim(tpms1)
+dim(tpms2)
+tot_counts = merge(counts1, counts2, by = 0)
+rownames(tot_counts) = tot_counts$Row.names
+tot_counts$Row.names = NULL
+tot_tpms = merge(tpms1, tpms2, by = 0)
+rownames(tot_tpms) = tot_tpms$Row.names
+tot_tpms$Row.names = NULL
+dim(tot_tpms)
+dim(tot_counts)
+counts = tot_counts
+tpms = tot_tpms
+## We need to then do the same for metadata, but batch 1 and 2 are rnaseq batch 1, and batch 3 here, is batch2 ... ##
+mynd_metadata = read.table('/sc/hydra/projects/pd-omics/mynd/qc/tmp.meta', header = T, check.names = F)
+rownames(mynd_metadata) = paste(mynd_metadata$Sample, mynd_metadata$Batch, sep = "_")
+rownames(mynd_metadata) = gsub("_2", "_1", rownames(mynd_metadata)) 
+rownames(mynd_metadata) = gsub("_3", "_2", rownames(mynd_metadata))
+rownames(mynd_metadata) %in% colnames(tpms)
+mynd_metadata = mynd_metadata[colnames(counts),]
 ```
 
 ## Normalization
@@ -92,12 +121,11 @@ mynd_abundance = tpms[keep.exp,]
 mynd_counts = counts[keep.exp,] 
 
 # Normalization
-norm = calcNormFactors(counts, method = "TMM") #normalized with TMM
+norm = calcNormFactors(mynd_counts, method = "TMM") #normalized with TMM
 
 #Creat Limma object
 x <- DGEList(counts=mynd_counts, samples=mynd_metadata, norm.factors = norm)
-v = voom(mynd_counts)
-
+v = voom(x)
 ```
 
 
@@ -112,7 +140,7 @@ mynd_voom = v$E
 length(x$samples$lib.size)
 
 #We can also plot the library sizes as a barplot to see whether there are any major discrepancies between the samples more easily. 
-#png(paste0(work_plots, "library_sizes.png"), width = 16, height = 10, res = 300, units = "in")
+#png(paste0(work_plots, "library_sizes.#png"), width = 16, height = 10, res = 300, units = "in")
 barplot(x$samples$lib.size, names=colnames(x), las=2, cex.axis = 0.8)
 title("Barplot of library sizes")
 #dev.off()
@@ -124,13 +152,25 @@ title("Barplot of library sizes")
 # Because of this we are using the ordered_metadata. 
 #plotMDS(x)
 
-#png(paste0(work_plots, "MDS.png"), width = 8, height = 6, res = 300, units = "in")
-col.group <- mynd_metadata$status
+#png(paste0(work_plots, "MDS.#png"), width = 8, height = 6, res = 300, units = "in")
+col.group <- mynd_metadata$Batch
 levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
 col.group <- as.character(col.group)
 plotMDS(mynd_voom, col= col.group)
-legend("bottomleft", legend = levels(mynd_metadata$status))
+title("MDS by Batch")
+
+getResiduals <- function(exprLine) {
+  ourCovRegression <- lm(exprLine ~ mynd_metadata$Batch + mynd_metadata$Gender + mynd_metadata$Age);
+  ourResiduals <- ourCovRegression$residuals;
+  return(ourResiduals)
+}
+allResiduals <- data.frame(t(apply(mynd_voom, 1, getResiduals)), check.names = F)
+resid = as.matrix(allResiduals)
+#png(paste0(work_plots, "MDSreg.png"), width = 8, height = 6, res = 300, units = "in")
+plotMDS(resid, col= col.group)
 title("MDS by Status")
+
+
 #dev.off()
 ```
 
@@ -139,15 +179,17 @@ title("MDS by Status")
 #PCA
 mynd_voom_t = t(mynd_voom)
 
-#png(paste0(work_plots, "PCA_status.png"), width = 8, height = 6, res = 300, units = "in")
-autoplot(prcomp(mynd_voom_t), data = mynd_metadata, colour = "batch")
+#png(paste0(work_plots, "PCA_status.#png"), width = 8, height = 6, res = 300, units = "in")
+autoplot(prcomp(mynd_voom_t), data = mynd_metadata, colour = "Batch")
+cov = t(resid)
+autoplot(prcomp(cov), data = mynd_metadata, colour = "Batch")
 #dev.off()
 ```
 
 ### Scatter plot 
 ```{r scatter.plot, echo=TRUE, fig.width=8, fig.height=6, res=300}
 #Only 2 samples
-#png(paste0(work_plots, "Scatter_all.png"), width = 8, height = 6, res = 300, units = "in")
+#png(paste0(work_plots, "Scatter_all.#png"), width = 8, height = 6, res = 300, units = "in")
 par( mfrow = c( 2,2 ))
 plot(log2(mynd_counts[,1:2] + 1), pch=16, cex=0.3, main = "COUNTS")
 plot(log2(mynd_cpm[,1:2] + 1), pch=16, cex=0.3, main = "CPM")
@@ -165,7 +207,7 @@ plot(mynd_voom[,1:2], pch=16, cex=0.3, main = "VOOM")
 lcounts = log2(mynd_counts)
 lcpm = log2(mynd_cpm)
 ltpm = log2(mynd_abundance)
-# vomm use log alread
+# voom use log alread
 
 nsamples <- ncol(mynd_cpm)
 #samplenames <- colnames(mynd_cpm)
@@ -173,7 +215,7 @@ nsamples <- ncol(mynd_cpm)
 colfunc <- colorRampPalette(c("#4DBBD5FF", "#3C5488FF"))
 col = alpha(colfunc(nsamples), alpha = 0.1)
 
-#png(paste0(work_plots, "Density_all.png"), width = 8, height = 6, res = 300, units = "in")
+#png(paste0(work_plots, "Density_all.#png"), width = 8, height = 6, res = 300, units = "in")
 par(mfrow=c(2,2))
 #COUNTS
 plot(density(lcounts[,1]), col=col[1], lwd=2, ylim=c(0,0.26), las=2, main="", xlab="")
@@ -221,9 +263,9 @@ for (i in 2:nsamples){
 ```{r boxplot.counts, echo=TRUE, fig.width=16, fig.height=6, res=300}
 ###Boxplot with log + 1 Only with few samples ###
 
-#png(paste0(work_plots, "Boxplot_all.png"), width = 8, height = 6, res = 300, units = "in")
-par(mfrow=c(2,2))
+#png(paste0(work_plots, "Boxplot_all.#png"), width = 8, height = 6, res = 300, units = "in")
 #Counts
+
 boxplot(log2(mynd_counts +1), col=rainbow(20), main="Counts", ylab="Log2(Counts+1)",las=2,cex.axis=0.8)
 
 #CPM
@@ -235,7 +277,6 @@ boxplot(log2(mynd_abundance +1), col=rainbow(20), main="TPM", ylab="Log2(TPM+1)"
 #Voom
 boxplot(mynd_voom, col=rainbow(20), main="Voom", ylab="Voom",las=2,cex.axis=0.8)
 
-
 #dev.off()
 ```
 
@@ -245,10 +286,10 @@ boxplot(mynd_voom, col=rainbow(20), main="Voom", ylab="Voom",las=2,cex.axis=0.8)
 par(mfrow=c(1,1))
 
 #Spearman
-col.cell <- c('grey','black')[mynd_metadata$status]
+col.cell <- c('grey','black')[mynd_metadata$Status]
 cormatrix = rcorr(as.matrix(mynd_voom), type='spearman')
 corrdata = as.matrix(cormatrix$r)
-#png(paste0(work_plots, "HM_Spearman.png"), width = 20, height = 14, res = 300, units = "in")
+#png(paste0(work_plots, "HM_Spearman.#png"), width = 20, height = 14, res = 300, units = "in")
 heatmap.2(corrdata, main="Voom Spearman",ColSideColors = col.cell, trace="none", col = c(sort(brewer.pal(9,"Blues")),brewer.pal(9,"Reds")), margins = c(1,1))
 #dev.off()
 ```
@@ -258,7 +299,7 @@ heatmap.2(corrdata, main="Voom Spearman",ColSideColors = col.cell, trace="none",
 #Pearson
 cormatrix = rcorr(as.matrix(mynd_voom), type='pearson')
 corrdata = as.matrix(cormatrix$r)
-#png(paste0(work_plots, "HM_Pearson.png"), width = 20, height = 14, res = 300, units = "in")
+#png(paste0(work_plots, "HM_Pearson.#png"), width = 20, height = 14, res = 300, units = "in")
 heatmap.2(corrdata, main="Voom Pearson", ColSideColors = col.cell,trace="none", col = c(sort(brewer.pal(9,"Blues")),brewer.pal(9,"Reds")), margins = c(1,1))
 #dev.off()
 ```
@@ -267,7 +308,7 @@ heatmap.2(corrdata, main="Voom Pearson", ColSideColors = col.cell,trace="none", 
 ```{r tree.euclidean, echo=TRUE, fig.width=20, fig.height=10, res=300}
 #Euclidean distance with the transposed matrix
 sampleTree = hclust(dist(mynd_voom_t), method = "average")
-#png(paste0(work_plots, "tree_euclidean.png"), width = 20, height = 10, res = 300, units = "in")
+#png(paste0(work_plots, "tree_euclidean.#png"), width = 20, height = 10, res = 300, units = "in")
 plot(sampleTree, main = "Sample clustering to detecting outliers", 
      sub = "Function: hclust, Method: average from Euclidean distance", xlab = "samples", 
      cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.5, cex.sub = 1.5)
@@ -277,10 +318,10 @@ plot(sampleTree, main = "Sample clustering to detecting outliers",
 ### Tree: Spearman 
 ```{r tree.spearman, echo=TRUE, fig.width=20, fig.height=10, res=300}
 #Spearman correlation #10 min
-#png(paste0(work_plots, "tree_Spearman.png"), width = 20, height = 10, res = 300, units = "in")
-plot(hcluster(mynd_voom_t, method= "spearman", link="average" ), 
-     cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, main= "Hierarchical Clustering", 
-     sub = "Function: hcluster, Method: Spearman", xlab = "samples")
+#png(paste0(work_plots, "tree_Spearman.#png"), width = 20, height = 10, res = 300, units = "in")
+#plot(hcluster(mynd_voom_t, method= "spearman", link="average" ), 
+#     cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, main= "Hierarchical Clustering", 
+#     sub = "Function: hcluster, Method: Spearman", xlab = "samples")
 #dev.off()
 ```
 
@@ -288,9 +329,26 @@ plot(hcluster(mynd_voom_t, method= "spearman", link="average" ),
 ```{r sex check, echo=TRUE, fig.width=20, fig.height=10, res=300}
 total = merge(mynd_voom_t, mynd_metadata, by = 0)
 total$mismatch = ""
-labelIndicesWeWant <- total$gender  == "M" & total$ENSG00000229807 > 5 | total$gender ==  "F" & total$ENSG00000183878 > 0
+labelIndicesWeWant <- total$Gender  == "M" & total$ENSG00000229807.11 > 5 | total$Gender ==  "F" & total$ENSG00000183878.15 > 0
 total$mismatch[labelIndicesWeWant] <- as.character(total$Row.names[labelIndicesWeWant])
-
-p = ggplot(total, aes(x = ENSG00000229807, y = ENSG00000183878, color = gender, label = mismatch))
-p + geom_point() + geom_text_repel()
+p = ggplot(total, aes(x = ENSG00000229807.11, y = ENSG00000183878.15, color = Gender, label = mismatch))
+p + geom_point() + geom_text_repel() + xlab("XIST") + ylab("UTY")
 ```
+
+### Marker Gene Expression
+```{r cell marker expression, echo=TRUE, fig.width=22, fig.height=11, res=300}
+#png( "cell_marker_genes.#png", width = 22, height = 11, res = 300, units = "in")
+my_palette <- colorRampPalette(c('Light Blue', "White", "Red"))
+library(gplots)
+
+markers = read.table('/sc/hydra/projects/pd-omics/mynd/qc/marker.genes', header = F)
+total = merge(markers, mynd_abundance,  by.y = 0, by.x = 'V1', sort = F)
+rownames(total) = total$V2
+total$V1 = NULL 
+total$V2 = NULL
+total$Row.names = NULL
+total = as.matrix(log2(total + 1))
+
+heatmap.2(total, dendrogram="both", Rowv =F, Colv=T, cexCol = .4, trace="none", scale = "none", col=my_palette, adjRow = c(0, 0.5), margins = c(6, 8), key = TRUE, keysize = 1.3, xlab = "Samples", ylab = "Genes", main = "Expression")
+#dev.off()
+

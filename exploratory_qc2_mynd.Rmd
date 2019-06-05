@@ -1,0 +1,325 @@
+
+subtitle: ""
+author: |
+ | Evan Udine
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   smooth_scroll: true
+   number_sections: false
+self_contained: true
+---
+
+> Ensembl 70 |
+> Gencode 19 . 
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+if(!require("dplyr")) install.packages("dplyr"); library("dplyr")
+if(!require("limma")) install.packages("limma"); library("limma")
+if(!require("DESeq2")) install.packages("DESeq2"); library("DESeq2")
+if(!require("edgeR")) install.packages("edgeR"); library("edgeR")
+if(!require("readxl")) install.packages("readxl"); library("readxl") #to read excel into R
+if(!require("tximport")) BiocManager::install("tximport"); library("tximport")
+if(!require("GenomicFeatures")) BiocManager::install("GenomicFeatures"); library("GenomicFeatures")
+if(!require("variancePartition")) BiocManager::install("variancePartition"); library("variancePartition")
+if(!require("tidyverse")) install.packages("tidyverse"); library("tidyverse")
+if(!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer")
+if(!require("gplots")) install.packages("gplots"); library("gplots")
+if(!require("Hmisc")) install.packages("Hmisc"); library("Hmisc")
+if(!require("amap")) BiocManager::install("amap"); library("amap")
+if(!require("ggfortify")) BiocManager::install("ggfortify"); library("ggfortify")
+if(!require("ggrepel")) BiocManager::install("ggrepel"); library("ggrepel")
+knitr::opts_chunk$set( 
+  warning=FALSE,
+  message=FALSE,
+  results = 'asis',
+  error = FALSE,
+  tidy = FALSE,
+  fig.show = "hold")
+```
+
+## Expression table 
+```{r preparing.expression_table, echo=TRUE}
+####################################
+#Preparing the expression table
+####################################
+
+#dir = "/hpc/users/udinee01/pd-omics/data/mynd/rsem"
+
+#samples = read.table("/hpc/users/udinee01/pd-omics/data/mynd/metadata_pd_batch1_batch2.txt", header = T, check.names = F)
+#sample = samples$id
+#files = file.path(dir, sample, paste0(sample, ".genes.results"))
+#all(file.exists(files))
+#names(files) = samples$id
+#txi.rsem = tximport(files, type = "rsem")
+
+#counts = data.frame(txi.rsem$counts, check.names = F)
+#tpms = data.frame(txi.rsem$abundance, check.names = F)
+
+counts = read.table('/hpc/users/udinee01/pd-omics/data/mynd/qc/mynd_counts.txt', header = T, row.names = 1, check.names = F)
+tpms = read.table('/hpc/users/udinee01/pd-omics/data/mynd/qc/mynd_tpms.txt', header = T, row.names = 1, check.names = F)
+mynd_metadata = read.table('/hpc/users/udinee01/pd-omics/data/mynd/metadata_pd_batch1_batch2.txt', header = T, row.names = 1, check.names = F)
+#write.table(counts, "mynd_counts.txt", quote = F, sep = "\t")
+#write.table(tpms, "mynd_tpms.txt", quote = F, sep = "\t")
+```
+
+## Normalization
+```{r norm.design, echo=TRUE}
+# You don't need to run everythin again, we can load the RData from here! 
+#load(paste0(work_dir, "mynd.expression.RData"))
+
+### Removing genes with low expression
+### >= 30%
+x = data.frame(counts, check.names = F)
+cpm = cpm(x)
+keep.exp = rowSums(cpm > 1) >= 0.3*ncol(x)
+
+#These are the final tables of expression! 
+mynd_cpm = cpm[keep.exp, ] 
+mynd_abundance = tpms[keep.exp,] 
+mynd_counts = counts[keep.exp,] 
+
+# Normalization
+norm = calcNormFactors(counts, method = "TMM") #normalized with TMM
+
+#Creat Limma object
+x <- DGEList(counts=mynd_counts, samples=mynd_metadata, norm.factors = norm)
+v = voom(x)
+```
+
+
+```{r norm.voom, echo=TRUE, results = 'asis'}
+#Voom expression table 
+mynd_voom = v$E
+```
+
+##Exploratory Analysis
+### Library sizes 
+```{r library.size, echo=TRUE, fig.width=16, fig.height=10, res=300}
+length(x$samples$lib.size)
+
+#We can also plot the library sizes as a barplot to see whether there are any major discrepancies between the samples more easily. 
+#png(paste0(work_plots, "library_sizes.png"), width = 16, height = 10, res = 300, units = "in")
+barplot(x$samples$lib.size, names=colnames(x), las=2, cex.axis = 0.8)
+title("Barplot of library sizes")
+#dev.off()
+```
+
+### MDS plot 
+```{r MDS, echo=TRUE, fig.width=8, fig.height=6, res=300}
+# To do the MDS plot is necessary to check the order for the colors.
+# Because of this we are using the ordered_metadata. 
+#plotMDS(x)
+
+#png(paste0(work_plots, "MDS.png"), width = 8, height = 6, res = 300, units = "in")
+col.group <- mynd_metadata$batch
+levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
+col.group <- as.character(col.group)
+plotMDS(mynd_voom, col= col.group)
+title("MDS by Status")
+
+getResiduals <- function(exprLine) {
+  ourCovRegression <- lm(exprLine ~ mynd_metadata$batch + mynd_metadata$rRNA.rate + mynd_metadata$gender + mynd_metadata$age + mynd_metadata$rin_value + mynd_metadata$process_location + mynd_metadata$ethnicity);
+  ourResiduals <- ourCovRegression$residuals;
+  return(ourResiduals)
+}
+allResiduals <- data.frame(t(apply(mynd_voom, 1, getResiduals)), check.names = F)
+resid = as.matrix(allResiduals)
+cov = t(resid)
+plotMDS(cov, col= col.group)
+title("MDS by Status")
+
+
+#dev.off()
+```
+
+### PCA plot 
+```{r pca.status, echo=TRUE, fig.width=8, fig.height=6, res=300}
+#PCA
+mynd_voom_t = t(mynd_voom)
+
+#png(paste0(work_plots, "PCA_status.png"), width = 8, height = 6, res = 300, units = "in")
+autoplot(prcomp(mynd_voom_t), data = mynd_metadata, colour = "batch")
+
+autoplot(prcomp(cov), data = mynd_metadata, colour = "batch")
+#dev.off()
+```
+
+### Scatter plot 
+```{r scatter.plot, echo=TRUE, fig.width=8, fig.height=6, res=300}
+#Only 2 samples
+#png(paste0(work_plots, "Scatter_all.png"), width = 8, height = 6, res = 300, units = "in")
+par( mfrow = c( 2,2 ))
+plot(log2(mynd_counts[,1:2] + 1), pch=16, cex=0.3, main = "COUNTS")
+plot(log2(mynd_cpm[,1:2] + 1), pch=16, cex=0.3, main = "CPM")
+plot(log2(mynd_abundance[,1:2] + 1), pch=16, cex=0.3, main = "TPM") 
+plot(mynd_voom[,1:2], pch=16, cex=0.3, main = "VOOM")
+#dev.off()
+```
+
+### Density plot 
+```{r density.plot, echo=TRUE, fig.width=8, fig.height=6, res=300}
+#Density plot with all samples
+# cpm table = ppmi_cpm_case_control
+# log cpm table = lcpm
+
+lcounts = log2(mynd_counts)
+lcpm = log2(mynd_cpm)
+ltpm = log2(mynd_abundance)
+# voom use log alread
+
+nsamples <- ncol(mynd_cpm)
+#samplenames <- colnames(mynd_cpm)
+
+colfunc <- colorRampPalette(c("#4DBBD5FF", "#3C5488FF"))
+col = alpha(colfunc(nsamples), alpha = 0.1)
+
+#png(paste0(work_plots, "Density_all.png"), width = 8, height = 6, res = 300, units = "in")
+par(mfrow=c(2,2))
+#COUNTS
+plot(density(lcounts[,1]), col=col[1], lwd=2, ylim=c(0,0.26), las=2, main="", xlab="")
+title(main="A. COUNTS ", xlab="Log2(counts)")
+#abline(v=lcpm.cutoff, lty=3)
+for (i in 2:nsamples){
+  den <- density(lcounts[,i])
+  lines(den$x, den$y, col=col[i], lwd=2)
+}
+#legend("right", samplenames, text.col=col, bty="n")
+
+#CPM
+plot(density(lcpm[,1]), col=col[1], lwd=2, ylim=c(0,0.26), las=2, main="", xlab="")
+title(main="B. CPM ", xlab="Log2(CPM)")
+#abline(v=lcpm.cutoff, lty=3)
+for (i in 2:nsamples){
+  den <- density(lcpm[,i])
+  lines(den$x, den$y, col=col[i], lwd=2)
+}
+#legend("right", samplenames, text.col=col, bty="n")
+
+#TPM
+plot(density(ltpm[,1]), col=col[1], lwd=2, ylim=c(0,0.26), las=2, main="", xlab="")
+title(main="C. TPM ", xlab="Log2(TPM)")
+#abline(v=ltpm.cutoff, lty=3)
+for (i in 2:nsamples){
+  den <- density(ltpm[,i])
+  lines(den$x, den$y, col=col[i], lwd=2)
+}
+#legend("right", samplenames, text.col=col, bty="n")
+
+#Voom
+plot(density(mynd_voom[,1]), col=col[1], lwd=2, ylim=c(0,0.26), las=2, main="", xlab="")
+title(main="D. VOOM ", xlab="voom")
+#abline(v=lvoom.cutoff, lty=3)
+for (i in 2:nsamples){
+  den <- density(mynd_voom[,i])
+  lines(den$x, den$y, col=col[i], lwd=2)
+}
+#legend("right", samplenames, text.col=col, bty="n")
+#dev.off()
+```
+
+### Boxplots all 
+```{r boxplot.counts, echo=TRUE, fig.width=16, fig.height=6, res=300}
+###Boxplot with log + 1 Only with few samples ###
+
+#png(paste0(work_plots, "Boxplot_all.png"), width = 8, height = 6, res = 300, units = "in")
+#Counts
+
+boxplot(log2(mynd_counts +1), col=rainbow(20), main="Counts", ylab="Log2(Counts+1)",las=2,cex.axis=0.8)
+
+#CPM
+boxplot(log2(mynd_cpm +1), col=rainbow(20), main="CPM", ylab="Log2(CPM+1)",las=2,cex.axis=0.8)
+
+#TPM
+boxplot(log2(mynd_abundance +1), col=rainbow(20), main="TPM", ylab="Log2(TPM+1)",las=2,cex.axis=0.8)
+
+#Voom
+boxplot(mynd_voom, col=rainbow(20), main="Voom", ylab="Voom",las=2,cex.axis=0.8)
+
+#dev.off()
+```
+
+### Heatmap: Spearman
+```{r hm.spearman, echo=TRUE, fig.width=20, fig.height=14, res=300}
+###Heatmaps NOT GOOD FOR 600 samples ### 8 min CHECK THE BAR COLORS
+par(mfrow=c(1,1))
+
+#Spearman
+col.cell <- c('grey','black')[mynd_metadata$status]
+cormatrix = rcorr(as.matrix(mynd_voom), type='spearman')
+corrdata = as.matrix(cormatrix$r)
+#png(paste0(work_plots, "HM_Spearman.png"), width = 20, height = 14, res = 300, units = "in")
+heatmap.2(corrdata, main="Voom Spearman",ColSideColors = col.cell, trace="none", col = c(sort(brewer.pal(9,"Blues")),brewer.pal(9,"Reds")), margins = c(1,1))
+#dev.off()
+```
+
+### Heatmap: Pearson 
+```{r hm.pearson, echo=TRUE, fig.width=20, fig.height=14, res=300}
+#Pearson
+cormatrix = rcorr(as.matrix(mynd_voom), type='pearson')
+corrdata = as.matrix(cormatrix$r)
+#png(paste0(work_plots, "HM_Pearson.png"), width = 20, height = 14, res = 300, units = "in")
+heatmap.2(corrdata, main="Voom Pearson", ColSideColors = col.cell,trace="none", col = c(sort(brewer.pal(9,"Blues")),brewer.pal(9,"Reds")), margins = c(1,1))
+#dev.off()
+```
+
+### Tree: Euclidean
+```{r tree.euclidean, echo=TRUE, fig.width=20, fig.height=10, res=300}
+#Euclidean distance with the transposed matrix
+sampleTree = hclust(dist(mynd_voom_t), method = "average")
+#png(paste0(work_plots, "tree_euclidean.png"), width = 20, height = 10, res = 300, units = "in")
+plot(sampleTree, main = "Sample clustering to detecting outliers", 
+     sub = "Function: hclust, Method: average from Euclidean distance", xlab = "samples", 
+     cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.5, cex.sub = 1.5)
+#dev.off()
+```
+
+### Tree: Spearman 
+```{r tree.spearman, echo=TRUE, fig.width=20, fig.height=10, res=300}
+#Spearman correlation #10 min
+#png(paste0(work_plots, "tree_Spearman.png"), width = 20, height = 10, res = 300, units = "in")
+plot(hcluster(mynd_voom_t, method= "spearman", link="average" ), 
+     cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, main= "Hierarchical Clustering", 
+     sub = "Function: hcluster, Method: Spearman", xlab = "samples")
+#dev.off()
+```
+
+### Sex Check UTY vs XIST
+```{r sex check, echo=TRUE, fig.width=20, fig.height=10, res=300}
+total = merge(mynd_voom_t, mynd_metadata, by = 0)
+total$mismatch = ""
+labelIndicesWeWant <- total$gender  == "M" & total$ENSG00000229807 > 5 | total$gender ==  "F" & total$ENSG00000183878 > 0
+total$mismatch[labelIndicesWeWant] <- as.character(total$Row.names[labelIndicesWeWant])
+
+p = ggplot(total, aes(x = ENSG00000229807, y = ENSG00000183878, color = gender, label = mismatch))
+p + geom_point() + geom_text_repel()
+```
+
+### Marker Gene Expression
+```{r cell marker expression, echo=TRUE, fig.width=22, fig.height=11, res=300}
+#png( "cell_marker_genes.png", width = 22, height = 11, res = 300, units = "in")
+my_palette <- colorRampPalette(c('Light Blue', "White", "Red"))
+library(gplots)
+
+marker_genes = read.table('/sc/orga/projects/pd-omics/data/mynd/qc/cell.marker.expression', header = T, row.names = 1, check.names = F)
+genenames = read.table('/sc/orga/projects/pd-omics/data/mynd/qc/ens_marker_ids', row.names = 1, header = F)
+total = merge(marker_genes, genenames, by = 0, sort = F)
+rownames(total) = total$V2
+total$V2 = NULL 
+total$Row.names = NULL
+total = as.matrix(log2(total + 1))
+
+heatmap.2(total, dendrogram="both", Rowv =F, Colv=T, cexCol = .4, trace="none", scale = "none", col=my_palette, adjRow = c(0, 0.5), margins = c(6, 8), key = TRUE, keysize = 1.3, xlab = "Samples", ylab = "Genes", main = "Expression")
+#dev.off()
+```
