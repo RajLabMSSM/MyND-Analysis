@@ -14,7 +14,7 @@ RESULT PAGES - Updated RAPiD
 
 [Quality Control and Exploratory Analysis (all samples)](https://rajlabmssm.github.io/MyND-Analysis/mynd.qc.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
 
-[Quality Control and Exploratory Analysis (QC filter 1)](https://rajlabmssm.github.io/MyND-Analysis/filtered.qc.html)
+[Quality Control and Exploratory Analysis (QC filter 1)](https://rajlabmssm.github.io/MyND-Analysis/filtered.qc.html):
 - QC Filter 1: Remove all samples with:
 	- < than 20,000,000 Reads
 	- < 20% reads mapping to coding regions
