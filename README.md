@@ -1,5 +1,5 @@
 ## MyND_Analysis
-#### June 13th, 2019
+#### June 17th, 2019
 MyND Project 
 
 > All code is in R and depends on packages from CRAN and/ or Bioconductor.
@@ -19,6 +19,8 @@ RESULT PAGES - Updated RAPiD
 	- < than 20,000,000 Reads
 	- < 20% reads mapping to coding regions
 	- Duplicate Samples
+
+[PC Correlations](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html): Correlation of Principal Components with known covariates
 
 [Variance Partition]: Variance Partion Violin Plot and Canoncial Correlation Analysis
 

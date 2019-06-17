@@ -1,0 +1,138 @@
+---
+title: "PCA and PEER correlated with covariates"
+subtitle: ""
+author: |
+ | Evan Udine
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   smooth_scroll: true
+   number_sections: false
+self_contained: true
+---
+
+
+```{r clean.variables, echo=FALSE}
+#This command clean all variables. BE CAREFULL!!! 
+#rm(list = setdiff(ls(), lsf.str()))
+```
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+if(!require("limma")) install.packages("limma"); library("limma")
+if(!require("stats")) install.packages("stats"); library("stats")
+if(!require("ggfortify")) install.packages("ggfortify"); library("ggfortify")
+if(!require("gplots")) install.packages("gplots"); library("gplots")
+if(!require("factoextra")) install.packages("factoextra"); library("factoextra")
+
+knitr::opts_chunk$set( 
+  warning=FALSE,
+  message=FALSE,
+  results = 'asis',
+  error = FALSE,
+  tidy = FALSE,
+  fig.show = "hold")
+
+```
+
+```{r folders, echo=TRUE}
+work_dir = "/sc/hydra/projects/pd-omics/mynd/qc/v1" 
+work_plots = "/sc/hydra/projects/pd-omics/mynd/qc/v1"
+```
+
+```{r input.data, echo=TRUE}
+counts = read.table('mynd.filtered.counts.txt', header = T, check.names = F)
+tpms = read.table('mynd.filtered.tpms.txt', header = T, check.names = F)
+mynd_metadata = read.table('/sc/hydra/projects/pd-omics/mynd/qc/v1/filtered_metadata.txt', row.names = 1,  header = T, check.names = F)
+mynd_metadata = mynd_metadata[colnames(counts),]
+mynd_metadata$rna_batch = as.factor(mynd_metadata$rna_batch)
+mynd_metadata$lane = as.factor(mynd_metadata$lane)
+mynd_metadata$library_batch = as.factor(mynd_metadata$library_batch)
+mynd_metadata$season = as.factor(mynd_metadata$season)
+
+
+### CONFERIR VOOM 
+### Design 01
+
+#Voom expression table 
+v = voom(counts)
+gene_counts_voom = v$E
+voom_case_control = gene_counts_voom
+
+voom_case_control_t = t(voom_case_control)
+```
+
+### PCA data
+```{r pca.data, echo=TRUE, fig.width=8, fig.height=6, res=300}
+##############
+# PCA 
+##############
+
+#pca_voom = prcomp(voom_case_control)
+pca_voom = prcomp(voom_case_control_t) #Same PCA from Exploratory Analysis
+pca_voom$rotation[1:10, 1:5] # Few columns of PCs 
+pca_voom_selected = pca_voom$rotation[, 1:10] #Choose 10 firsts PCs
+
+autoplot(pca_voom)
+```
+
+### Heatmap from PCA data
+```{r pca.model, echo=TRUE, fig.width=8, fig.height=6, res=300}
+var <- get_pca_var(pca_voom)
+
+# Coordinates of variables
+#head(var$coord)
+# Cos2 of variables
+#head(var$cos2)
+# Contribution of variables
+#head(var$contrib)
+
+ind <- get_pca_ind(pca_voom)
+
+#Covariates
+covariates = c("rin_value",
+               "age",
+               "gender",
+               "ethnicity",
+               "lane",
+               "status",
+               "rna_batch",
+               "library_batch",
+               "season",
+               "MEDIAN_5PRIME_BIAS",
+               "PCT_USABLE_BASES",
+               "PCT_INTRONIC_BASES",
+               "PCT_RIBOSOMAL_BASES",
+               "PF_READS",
+               "PERCENT_DUPLICATION",
+               "PCT_RIBOSOMAL_BASES",
+               "PCT_CODING_BASES")
+
+matrix_rsquared = matrix(NA, nrow = length(covariates), ncol = 10) #Number of factors
+
+for (x in 1:length(covariates)){
+  for (y in 1:10){
+    matrix_rsquared[x,y] <- summary( lm(var$cor[,y] ~ mynd_metadata[,covariates[x]]) )$adj.r.squared
+  }
+}
+
+rownames(matrix_rsquared) = covariates
+
+heatmap.2(as.matrix(matrix_rsquared), col = colorRampPalette(RColorBrewer::brewer.pal(6,"RdPu"))(40),
+          scale="none",
+          margins=c(8,8), # ("margin.Y", "margin.X")
+          trace='none', 
+          #dendrogram='none',
+          density.info='none', 
+          denscol="black",
+          breaks = seq(0, 1, length.out = 41)
+)
+```
