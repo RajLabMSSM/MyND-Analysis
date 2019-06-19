@@ -106,6 +106,7 @@ mynd_metadata = read.table('/sc/hydra/projects/pd-omics/mynd/qc/v1/filtered_meta
 #rownames(mynd_metadata) %in% colnames(tpms)
 mynd_metadata = mynd_metadata[colnames(counts),]
 mynd_metadata$rna_batch = as.factor(mynd_metadata$rna_batch)
+mynd_metadata$library_batch = as.factor(mynd_metadata$library_batch)
 ```
 
 ## Technical QC Plots
@@ -203,7 +204,7 @@ mynd_voom_t = t(mynd_voom)
 autoplot(prcomp(mynd_voom_t), data = mynd_metadata, colour = "rna_batch")
 
 getResiduals <- function(exprLine) {
-  ourCovRegression <- lm(exprLine ~ mynd_metadata$rna_batch + mynd_metadata$gender + mynd_metadata$age);
+  ourCovRegression <- lm(exprLine ~ mynd_metadata$library_batch + mynd_metadata$rin_value +  mynd_metadata$rna_batch +  mynd_metadata$gender + mynd_metadata$age);
   ourResiduals <- ourCovRegression$residuals;
   return(ourResiduals)
 }
