@@ -22,7 +22,7 @@ RESULT PAGES - Updated RAPiD
 
 [PC Correlations](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html): Correlation of Principal Components with known covariates
 
-[Variance Partition]: Variance Partion Violin Plot and Canoncial Correlation Analysis
+[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/variance.partition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
 
 
 **************************************

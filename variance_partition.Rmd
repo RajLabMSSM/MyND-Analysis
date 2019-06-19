@@ -40,10 +40,10 @@ knitr::opts_chunk$set(
 ```{r load.data, echo=TRUE}
 #load reads:
 #If tpms:
-geneExp <- read.table("/hpc/users/navare04/pd-omics/data/mynd/qc/mynd_tpms.txt", header = TRUE, row.names = 1, check.names = F)
+geneExp <- read.table("mynd.filtered.tpms.txt", header = TRUE, row.names = 1, check.names = F)
 
 #Load covariates
-info <- read.table("/hpc/users/navare04/pd-omics/data/mynd/metadata_pd_batch1_batch2.txt", header = TRUE, row.names = 1)
+info <- read.table("filtered_metadata.txt", header = TRUE, row.names = 1)
 
 info$Exonic.Rate = 100*info$Exonic.Rate
 info$rRNA.rate=100*info$rRNA.rate
@@ -52,10 +52,11 @@ info$Intergenic.Rate=100*info$Intergenic.Rate
 info$Intronic.Rate=100*info$Intronic.Rate
 info$Expression.Profiling.Efficiency=100*info$Expression.Profiling.Efficiency
 info$Mapped=info$Mapped/100000
-info$batch=as.factor(info$batch)
+info$rna_batch=as.factor(info$rna_batch)
 info$library_batch=as.factor(info$library_batch)
 info$lane=as.factor(info$lane)
 info$season=as.factor(info$season)
+
 info1 <- info[colnames(geneExp),]
 
 #After sure that they are similar, force them.
@@ -69,15 +70,19 @@ keep.exp <- rowSums(geneExp > 1) >= 0.3*ncol(geneExp)
 ge <- geneExp[keep.exp, ] #Let's check if that's a good threshold
 
 #Variables to run Variance Partition. Remember (1|..) for factors!
-form <- ~(1|status) + (1|gender) + (1|process_location) + (1|ethnicity) + (1|batch) + (1|library_batch) + (1|lane) + (1|season) + (1|dna_cleaning) + age + rRNA.rate + Exonic.Rate + Mapped + rin_value + total_rna + pbmc_counts + monocyte_count + End.2.Mapping.Rate + Intergenic.Rate + Mean.Per.Base.Cov.
+form <- ~ (1|status) + (1|gender) + (1|process_location) + (1|ethnicity) + (1|rna_batch) + (1|library_batch) + (1|lane) + (1|season) + age + rin_value +  pbmc_counts + monocyte_count + PCT_RIBOSOMAL_BASES + PCT_CODING_BASES + PCT_USABLE_BASES + PCT_INTERGENIC_BASES + PERCENT_DUPLICATION + MEDIAN_5PRIME_BIAS
 
 #Variables to do the diagram:
-form_1 <- ~ status + gender + process_location + ethnicity + batch + library_batch + lane + season + age + rRNA.rate + Exonic.Rate + Mapped + rin_value + total_rna + dna_cleaning + pbmc_counts + monocyte_count + End.2.Mapping.Rate + Intergenic.Rate + Mean.Per.Base.Cov.
+form_1 <- ~ status + gender + process_location + ethnicity + rna_batch + library_batch + lane + season + age + rin_value + pbmc_counts + monocyte_count + PCT_RIBOSOMAL_BASES + PCT_CODING_BASES + PCT_USABLE_BASES + PCT_INTERGENIC_BASES + PERCENT_DUPLICATION + MEDIAN_5PRIME_BIAS  
 
 #The variance partiation run:
 varPart <- fitExtractVarPartModel( ge, form, info1 )
 vp <- sortCols ( varPart )
 plotVarPart ( vp )
+status = varPart[order(varPart$status, decreasing=TRUE),]
+head(status, 20)
+plotPercentBars( status[1:20,] )
+write.table(status, 'varpart.data.txt')
 ```
 
 ### Correlation
