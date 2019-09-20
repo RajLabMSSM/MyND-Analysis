@@ -7,28 +7,45 @@ MyND Project
 > This includes code and plots. Exploratory analysis and intermediate processing files are too large for this repository.
 
 **************************************
-RESULT PAGES - Updated RAPiD
+RESULT PAGES - Updated September 20
 **************************************
 
-[MultiQC](https://rajlabmssm.github.io/MyND-Analysis/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
+1. [MultiQC](https://rajlabmssm.github.io/MyND-Analysis/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
 
-[Quality Control and Exploratory Analysis (all samples)](https://rajlabmssm.github.io/MyND-Analysis/mynd.qc.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
 
-[Quality Control and Exploratory Analysis (QC filter 1)](https://rajlabmssm.github.io/MyND-Analysis/filtered.qc.html):
+2. [Quality Control and Exploratory Analysis (QC filtered)](https://rajlabmssm.github.io/MyND-Analysis/mynd.final.qc.output.html):
+- QC Filter: Remove all samples with:
+        - < than 20,000,000 Reads
+        - < 20% reads mapping to coding regions
+        - Duplicate Samples
+	- Swapped Samples
+	- Samples with comorbidities
+
+3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/mynd.metadata.output.html):Metadata Breakdown and Basic Clinical Details
+
+
+-------------------------------------
+**************************************
+RESULT PAGES - Old Files
+**************************************
+
+[Quality Control and Exploratory Analysis (all samples)](https://rajlabmssm.github.io/MyND-Analysis/old_files/mynd.qc.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
+
+[Quality Control and Exploratory Analysis (QC filter 1)](https://rajlabmssm.github.io/MyND-Analysis/old_files/filtered.qc.html):
 - QC Filter 1: Remove all samples with:
 	- < than 20,000,000 Reads
 	- < 20% reads mapping to coding regions
 	- Duplicate Samples
 
-[PC Correlations](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html): Correlation of Principal Components with known covariates
+[PC Correlations](https://rajlabmssm.github.io/MyND-Analysis/old_files/pca.corr.html): Correlation of Principal Components with known covariates
 
-[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/variance.partition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
+[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/old_files/variance.partition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
 
 
 **************************************
 RESULT PAGES - OLD RAPiD
 **************************************
 
-[Quality Control and Exploratory Analysis](https://rajlabmssm.github.io/MyND-Analysis/mynd.qc2.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
+[Quality Control and Exploratory Analysis](https://rajlabmssm.github.io/MyND-Analysis/old_files/mynd.qc2.html): Diverse plots for visualization including MDS, heatmaps, density, boxplots and PCA plots.
 
-[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/mynd.variance_partition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
+[Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/old_files/mynd.variance_partition.html): Variance Partion Violin Plot and Canoncial Correlation Analysis
