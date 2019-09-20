@@ -15,15 +15,17 @@ RESULT PAGES - Updated September 20
 
 2. [Quality Control and Exploratory Analysis (QC filtered)](https://rajlabmssm.github.io/MyND-Analysis/mynd.final.qc.output.html):
 - QC Filter: Remove all samples with:
-        - < than 20,000,000 Reads
-        - < 20% reads mapping to coding regions
-        - Duplicate Samples
+	- < than 20,000,000 Reads
+	- < 20% reads mapping to coding regions
+	- Duplicate Samples
 	- Swapped Samples
 	- Samples with comorbidities
 
 3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/mynd.metadata.output.html):Metadata Breakdown and Basic Clinical Details
 
 
+
+-------------------------------------
 -------------------------------------
 **************************************
 RESULT PAGES - Old Files
