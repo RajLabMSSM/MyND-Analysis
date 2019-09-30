@@ -21,9 +21,9 @@ RESULT PAGES - Updated September 20
 	- Swapped Samples
 	- Samples with comorbidities
 
-3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/mynd.metadata.output.html):Metadata Breakdown and Basic Clinical Details
+3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/mynd.metadata.output.html): Metadata Breakdown and Basic Clinical Details
 
-
+4. [Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/var.part.all.html)
 
 -------------------------------------
 -------------------------------------
