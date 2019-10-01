@@ -7,7 +7,7 @@ MyND Project
 > This includes code and plots. Exploratory analysis and intermediate processing files are too large for this repository.
 
 **************************************
-RESULT PAGES - Updated September 20
+RESULT PAGES - Updated October 1st
 **************************************
 
 1. [MultiQC](https://rajlabmssm.github.io/MyND-Analysis/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
@@ -24,6 +24,8 @@ RESULT PAGES - Updated September 20
 3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/mynd.metadata.output.html): Metadata Breakdown and Basic Clinical Details
 
 4. [Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/var.part.all.html)
+
+5. [PCA Correlations](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html)
 
 -------------------------------------
 -------------------------------------
