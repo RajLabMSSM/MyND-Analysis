@@ -32,10 +32,11 @@ if(!require("broom")) BiocManager::install("broom"); library("broom")
 library(data.table)
 
 peer = read.table('/sc/hydra/projects/pd-omics/evan/eqtl/eur_amr_eqtl_v1/eur_amr_10.PEER_covariates.txt', header = T, check.names = F, row.names = 1)
-head(peer)
+#head(peer)
 metadata_all = read.table('/sc/hydra/projects/pd-omics/evan/eqtl/eur_amr_eqtl_v1/eur_amr_metadata.txt', header = T, check.names = F, stringsAsFactors=FALSE)
-head(metadata_all)
+#head(metadata_all)
 rownames(metadata_all) = metadata_all$gsa_michael_id
+peer = peer[rownames(metadata_all)]
 
 metadata_all$gender[metadata_all$gender %in% "F"] <- 1
 metadata_all$gender[metadata_all$gender %in% "M"] <- 2
@@ -105,8 +106,8 @@ matrix_pvalue = formatC(matrix_pvalue, format = "e", digits = 2)
 heatmap.2(as.matrix(matrix_rsquared), col = colorRampPalette(RColorBrewer::brewer.pal(6,"RdPu"))(40),
           scale="none",
 #          cellnote = matrix_pvalue,
-          notecol="black",
-          notecex = 0.6,
+#          notecol="black",
+#          notecex = 0.6,
           margins=c(10,12), # ("margin.Y", "margin.X")
           trace='none', 
           dendrogram=c("row"),
@@ -126,5 +127,4 @@ heatmap.2(as.matrix(matrix_rsquared), col = colorRampPalette(RColorBrewer::brewe
           key.par=list()
           #          main = "Linear regression between sva_network and covariates"
 ) 
-
 ```
