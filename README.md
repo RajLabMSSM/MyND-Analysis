@@ -30,7 +30,7 @@ RESULT PAGES - Updated October 3rd
 
 5. [Correlations]
 	- [PCA](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html)
-	- [PEER](https://rajlabmssm.github.io/MyND-Analysis/peer_correlation.html)
+	- [PEER]
 -------------------------------------
 -------------------------------------
 **************************************
