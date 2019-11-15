@@ -28,9 +28,9 @@ RESULT PAGES - Updated October 3rd
 	- [Model Fitting](https://rajlabmssm.github.io/MyND-Analysis/cov_selection.html)
 		- Used limma BIC to fit multiple models
 
-5. [Correlations]
+5. Correlations
 	- [PCA](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html)
-	- [PEER]
+	- [PEER](https://rajlabmssm.github.io/MyND-Analysis/peer_correlation.html)
 -------------------------------------
 -------------------------------------
 **************************************
