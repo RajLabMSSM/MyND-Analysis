@@ -1,0 +1,79 @@
+---
+title: "Metadata Overview"
+subtitle: ""
+author: |
+ | Evan Udine
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   number_sections: false
+self_contained: true
+---
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+sessionInfo()
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+if(!require("dplyr")) install.packages("dplyr"); library("dplyr")
+if(!require("limma")) install.packages("limma"); library("limma")
+if(!require("DESeq2")) install.packages("DESeq2"); library("DESeq2")
+if(!require("edgeR")) install.packages("edgeR"); library("edgeR")
+if(!require("readxl")) install.packages("readxl"); library("readxl") #to read excel into R
+if(!require("tximport")) BiocManager::install("tximport"); library("tximport")
+if(!require("GenomicFeatures")) BiocManager::install("GenomicFeatures"); library("GenomicFeatures")
+if(!require("variancePartition")) BiocManager::install("variancePartition"); library("variancePartition")
+if(!require("tidyverse")) install.packages("tidyverse"); library("tidyverse")
+if(!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer")
+if(!require("gplots")) install.packages("gplots"); library("gplots")
+if(!require("Hmisc")) install.packages("Hmisc"); library("Hmisc")
+if(!require("ggfortify")) BiocManager::install("ggfortify"); library("ggfortify")
+if(!require("ggrepel")) BiocManager::install("ggrepel"); library("ggrepel")
+library(tidyverse)
+library(knitr)
+knitr::opts_chunk$set(
+  warning=FALSE,
+    message=FALSE,
+      results = 'asis',
+        error = FALSE,
+          tidy = FALSE,
+            fig.show = "hold")
+            work_plots = "/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/plots"
+```
+
+
+## Cohort Overview
+```{r cohort, echo=TRUE, results = 'asis'}
+x = read.table('/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/mynd_metadata_9_19_19.txt', row.names = 1,  header = T, check.names = F)
+
+p = table(x$status)
+p %>% kable(booktabs = TRUE)
+
+a = table(x$status, x$gender)
+a %>% kable(booktabs = TRUE)
+chi = chisq.test(x$status, x$gender)$p.value
+chi
+
+x$rna_batch = as.factor(x$rna_batch)
+b = table(x$status, x$rna_batch)
+b %>% kable(booktabs = TRUE)
+chi1 = chisq.test(x$status, x$rna_batch)$p.value
+chi1
+
+c = table(x$status, x$population_assignment)
+c %>% kable(booktabs = TRUE)
+
+d = table(x$status, x$aj)
+d %>% kable(booktabs = TRUE)
+
+e = table(x$status, x$mutation_status)
+e %>% kable(booktabs = TRUE)
+```

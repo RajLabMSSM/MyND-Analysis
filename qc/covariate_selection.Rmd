@@ -1,0 +1,80 @@
+---
+title: "Model Fitting Limma"
+subtitle: ""
+author: |
+ | Evan Udine
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   smooth_scroll: true
+   number_sections: false
+self_contained: true
+---
+
+
+```{r clean.variables, echo=FALSE}
+#This command clean all variables. BE CAREFULL!!! 
+#rm(list = setdiff(ls(), lsf.str()))
+```
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+if(!require("limma")) install.packages("limma"); library("limma")
+if(!require("stats")) install.packages("stats"); library("stats")
+if(!require("ggfortify")) install.packages("ggfortify"); library("ggfortify")
+if(!require("gplots")) install.packages("gplots"); library("gplots")
+if(!require("factoextra")) install.packages("factoextra"); library("factoextra")
+library(limma)
+library(edgeR)
+library(data.table)
+library(tidyverse)
+library(dplyr)
+knitr::opts_chunk$set( 
+  warning=FALSE,
+  message=FALSE,
+  results = 'asis',
+  error = FALSE,
+  tidy = FALSE,
+  fig.show = "hold")
+```
+
+```{r test covariates, echo=TRUE, message=FALSE, results='asis'}
+pheno = read.table("/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/differential_expression_11.04.2019/metadata_11.04.2019", header = T, row.names = 1, check.names = F)
+pheno$rna_batch = as.factor(pheno$rna_batch)
+pheno$season = as.factor(pheno$season)
+
+counts = read.table("/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/mynd.counts.txt", header = TRUE, check.names = FALSE)
+identical(rownames(pheno), colnames(counts))
+x <- DGEList(counts=counts, samples=pheno)
+cpm = cpm(x)
+
+pheno$status <- relevel(pheno$status, ref="Control")
+#pheno$gba <- relevel(pheno$gba, ref='N')
+#pheno$lrrk2 <- relevel(pheno$lrrk2, ref = 'N')
+
+keep.exp = rowSums(cpm > 1) >= 0.3*ncol(x) #Filtering
+x = x[keep.exp,]
+x = calcNormFactors(x, method = "TMM") #normalized counts with TMM
+
+x = voom(x)
+#Test Fit of different designs with limma
+design_list <- 
+  list( simple = model.matrix(~ status, data = pheno),
+        design_0 = model.matrix(~ status + rna_batch + age + gender + rin_value + PCT_RIBOSOMAL_BASES + mds1 + mds2 + mds3 + mds4, data = pheno),
+        design_1 = model.matrix(~ status + rna_batch + age + gender + rin_value + PCT_USABLE_BASES + PCT_RIBOSOMAL_BASES + mds1 + mds2 + mds3 + mds4, data = pheno),
+        design_2 = model.matrix( ~ status + rna_batch + age + gender + rin_value +  PCT_USABLE_BASES + PCT_RIBOSOMAL_BASES + TOTAL_READS +  INTRONIC_BASES + CODING_BASES + INTERGENIC_BASES + PCT_INTRONIC_BASES + PCT_PF_READS_ALIGNED + PERCENT_DUPLICATION + MEDIAN_5PRIME_BIAS + mds1 + mds2 + mds3 + mds4, data = pheno)
+       )
+
+model_select <- selectModel(x, designlist = design_list, criterion = "bic")
+
+# This gives the number of genes that have the best BIC
+table(model_select$pref) %>% knitr::kable()
+```

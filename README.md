@@ -13,7 +13,7 @@ RESULT PAGES - Updated October 3rd
 1. [MultiQC](https://rajlabmssm.github.io/MyND-Analysis/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
 
 
-2. [Quality Control and Exploratory Analysis (QC filtered)](https://rajlabmssm.github.io/MyND-Analysis/mynd.final.qc.output.html):
+2. [Quality Control and Exploratory Analysis (QC filtered)](https://rajlabmssm.github.io/MyND-Analysis/qc/mynd_qc_output.html):
 - QC Filter: Remove all samples with:
 	- < than 20,000,000 Reads
 	- < 20% reads mapping to coding regions
@@ -21,7 +21,7 @@ RESULT PAGES - Updated October 3rd
 	- Swapped Samples
 	- Samples with comorbidities
 
-3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/mynd.metadata.output.html): Metadata Breakdown and Basic Clinical Details
+3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/qc/mynd_overview_output.html): Metadata Breakdown and Basic Clinical Details
 
 4. Variance Partition and Model Fitting:
 	- [Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/var.part.all.html)
@@ -31,6 +31,9 @@ RESULT PAGES - Updated October 3rd
 5. Correlations
 	- [PCA](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html)
 	- [PEER](https://rajlabmssm.github.io/MyND-Analysis/peer_correlation.html)
+
+6. Differential Expression
+- [Simple model](https://rajlabmssm.github.io/MyND-Analysis/mynd_de_output.html)
 -------------------------------------
 -------------------------------------
 **************************************
