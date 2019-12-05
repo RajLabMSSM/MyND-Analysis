@@ -1,5 +1,5 @@
 ## MyND_Analysis
-#### November 15th, 2019
+#### December 5th, 2019
 MyND Project 
 
 > All code is in R and depends on packages from CRAN and/ or Bioconductor.
@@ -10,7 +10,7 @@ MyND Project
 RESULT PAGES - Updated October 3rd
 **************************************
 
-1. [MultiQC](https://rajlabmssm.github.io/MyND-Analysis/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
+1. [MultiQC](https://rajlabmssm.github.io/MyND-Analysis/qc/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
 
 
 2. [Quality Control and Exploratory Analysis (QC filtered)](https://rajlabmssm.github.io/MyND-Analysis/qc/mynd_qc_output.html):
@@ -24,16 +24,16 @@ RESULT PAGES - Updated October 3rd
 3. [Overview of Clean Samples](https://rajlabmssm.github.io/MyND-Analysis/qc/mynd_overview_output.html): Metadata Breakdown and Basic Clinical Details
 
 4. Variance Partition and Model Fitting:
-	- [Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/var.part.all.html)
-	- [Model Fitting](https://rajlabmssm.github.io/MyND-Analysis/cov_selection.html)
+	- [Variance Partition](https://rajlabmssm.github.io/MyND-Analysis/qc/var.part.all.html)
+	- [Model Fitting](https://rajlabmssm.github.io/MyND-Analysis/qc/cov_selection.html)
 		- Used limma BIC to fit multiple models
 
 5. Correlations
-	- [PCA](https://rajlabmssm.github.io/MyND-Analysis/pca.corr.html)
-	- [PEER](https://rajlabmssm.github.io/MyND-Analysis/peer_correlation.html)
+	- [PCA](https://rajlabmssm.github.io/MyND-Analysis/qc/pca.corr.html)
+	- [PEER](https://rajlabmssm.github.io/MyND-Analysis/qc/peer_correlation.html)
 
 6. Differential Expression
-- [Simple model](https://rajlabmssm.github.io/MyND-Analysis/mynd_de_output.html)
+- [Differential Gene Expression](https://rajlabmssm.github.io/MyND-Analysis/de/dte/mynd_de_output.html)
 -------------------------------------
 -------------------------------------
 **************************************

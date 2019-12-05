@@ -3,8 +3,6 @@ title: "MYND Exploratory QC"
 subtitle: ""
 author: |
  | Evan Udine
- | Elisa Navarro
- | Katia Lopes
  | Raj Lab
  | Department of Neuroscience
  | Icahn School of Medicine at Mount Sinai
@@ -38,7 +36,7 @@ if(!require("tidyverse")) install.packages("tidyverse"); library("tidyverse")
 if(!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer")
 if(!require("gplots")) install.packages("gplots"); library("gplots")
 if(!require("Hmisc")) install.packages("Hmisc"); library("Hmisc")
-if(!require("amap")) BiocManager::install("amap"); library("amap")
+#if(!require("amap")) BiocManager::install("amap"); library("amap")
 if(!require("ggfortify")) BiocManager::install("ggfortify"); library("ggfortify")
 if(!require("ggrepel")) BiocManager::install("ggrepel"); library("ggrepel")
 library(tidyverse)
@@ -50,7 +48,7 @@ knitr::opts_chunk$set(
   error = FALSE,
   tidy = FALSE,
   fig.show = "hold")
-work_plots = "/sc/hydra/projects/pd-omics/mynd/analyses/figures/supplement/qc"
+work_plots = "/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/plots"
 ```
 
 ## Cohort Overview
@@ -185,8 +183,8 @@ mynd_voom = v$E
 length(x$samples$lib.size)
 
 #We can also plot the library sizes as a barplot to see whether there are any major discrepancies between the samples more easily. 
-png(paste0(work_plots, "library_sizes.#png"), width = 16, height = 10, res = 300, units = "in")
-#barplot(x$samples$lib.size, names=colnames(x), las=2, cex.axis = 0.8)
+#png(paste0(work_plots, "library_sizes.#png"), width = 16, height = 10, res = 300, units = "in")
+barplot(x$samples$lib.size, names=colnames(x), las=2, cex.axis = 0.8)
 title("Barplot of library sizes")
 #dev.off()
 ```
@@ -197,7 +195,7 @@ title("Barplot of library sizes")
 # Because of this we are using the ordered_metadata. 
 #plotMDS(x)
 
-png(paste0(work_plots, "MDS.#png"), width = 8, height = 6, res = 300, units = "in")
+#png(paste0(work_plots, "MDS.#png"), width = 8, height = 6, res = 300, units = "in")
 col.group <- mynd_metadata$rna_batch
 levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
 col.group <- as.character(col.group)
@@ -205,45 +203,52 @@ plotMDS(mynd_voom, col= col.group)
 title("MDS by rna_batch")
 
 getResiduals <- function(exprLine) {
-  ourCovRegression <- lm(exprLine ~ mynd_metadata$rna_batch + mynd_metadata$PCT_USABLE_BASES + mynd_metadata$PCT_RIBOSOMAL_BASES + mynd_metadata$TOTAL_READS + mynd_metadata$INTRONIC_BASES + mynd_metadata$PCT_INTRONIC_BASES + mynd_metadata$CODING_BASES + mynd_metadata$INTERGENIC_BASES + mynd_metadata$MEDIAN_5PRIME_BIAS + mynd_metadata$PCT_PF_READS_ALIGNED + mynd_metadata$PERCENT_DUPLICATION + mynd_metadata$rin_value + mynd_metadata$age + mynd_metadata$mds1 + mynd_metadata$mds2 + mynd_metadata$mds3 + mynd_metadata$mds4 + mynd_metadata$gender);
+  ourCovRegression <- lm(exprLine ~  mynd_metadata$rin_value +  mynd_metadata$rna_batch +  mynd_metadata$gender + mynd_metadata$age + mynd_metadata$PCT_USABLE_BASES + mynd_metadata$mds1 + mynd_metadata$mds2 + mynd_metadata$mds3 + mynd_metadata$mds4);
   ourResiduals <- ourCovRegression$residuals;
   return(ourResiduals)
 }
 allResiduals <- data.frame(t(apply(mynd_voom, 1, getResiduals)), check.names = F)
 resid = as.matrix(allResiduals)
-png(paste0(work_plots, "MDSreg.png"), width = 8, height = 6, res = 300, units = "in")
+#png(paste0(work_plots, "MDSreg.png"), width = 8, height = 6, res = 300, units = "in")
 plotMDS(resid, col= col.group)
 #title("MDS by Status")
 
 
-dev.off()
+#dev.off()
 ```
 
 ### PCA plots
 ```{r pca.status, echo=TRUE, fig.width=8, fig.height=6, res=300}
-png(paste0(work_plots, "PCA.#png"), width = 8, height = 6, res = 300, units = "in")
 par(mfrow=c(1,2))
 
 #PCA
 mynd_voom_t = t(mynd_voom)
-autoplot(prcomp(mynd_voom_t), data = mynd_metadata, colour = "rna_batch", label = F)
+autoplot(prcomp(mynd_voom_t), data = mynd_metadata, colour = "rna_batch")
+
+getResiduals <- function(exprLine) {
+  ourCovRegression <- lm(exprLine ~  mynd_metadata$rin_value +  mynd_metadata$rna_batch +  mynd_metadata$gender + mynd_metadata$age + mynd_metadata$PCT_USABLE_BASES + mynd_metadata$mds1 + mynd_metadata$mds2 + mynd_metadata$mds3 + mynd_metadata$mds4);
+  ourResiduals <- ourCovRegression$residuals;
+  return(ourResiduals)
+}
+allResiduals <- data.frame(t(apply(mynd_voom, 1, getResiduals)), check.names = F)
+resid = as.matrix(allResiduals)
 
 cov = t(resid)
-autoplot(prcomp(cov), data = mynd_metadata, main = "rna_batch", colour = "rna_batch", label = F)
+autoplot(prcomp(cov), data = mynd_metadata, main = "rna_batch", colour = "rna_batch", label = T)
 
-dev.off()
+#dev.off()
 ```
 
 ### Scatter plot 
 ```{r scatter.plot, echo=TRUE, fig.width=8, fig.height=6, res=300}
 #Only 2 samples
-png(paste0(work_plots, "Scatter_all.#png"), width = 8, height = 6, res = 300, units = "in")
+#png(paste0(work_plots, "Scatter_all.#png"), width = 8, height = 6, res = 300, units = "in")
 par( mfrow = c( 2,2 ))
 plot(log2(mynd_counts[,1:2] + 1), pch=16, cex=0.3, main = "COUNTS")
 plot(log2(mynd_cpm[,1:2] + 1), pch=16, cex=0.3, main = "CPM")
 plot(log2(mynd_abundance[,1:2] + 1), pch=16, cex=0.3, main = "TPM") 
 plot(mynd_voom[,1:2], pch=16, cex=0.3, main = "VOOM")
-dev.off()
+#dev.off()
 ```
 
 ### Density plot 
@@ -263,7 +268,7 @@ nsamples <- ncol(mynd_cpm)
 colfunc <- colorRampPalette(c("#4DBBD5FF", "#3C5488FF"))
 col = alpha(colfunc(nsamples), alpha = 0.1)
 
-png(paste0(work_plots, "Density_all.#png"), width = 8, height = 6, res = 300, units = "in")
+#png(paste0(work_plots, "Density_all.#png"), width = 8, height = 6, res = 300, units = "in")
 par(mfrow=c(2,2))
 #COUNTS
 plot(density(lcounts[,1]), col=col[1], lwd=2, ylim=c(0,0.26), las=2, main="", xlab="")
@@ -304,16 +309,16 @@ for (i in 2:nsamples){
   lines(den$x, den$y, col=col[i], lwd=2)
 }
 #legend("right", samplenames, text.col=col, bty="n")
-dev.off()
+#dev.off()
 ```
 
 ### Boxplots all 
 ```{r boxplot.counts, echo=TRUE, fig.width=16, fig.height=6, res=300}
 ###Boxplot with log + 1 Only with few samples ###
 
-png(paste0(work_plots, "Boxplot_all.#png"), width = 8, height = 6, res = 300, units = "in")
+#png(paste0(work_plots, "Boxplot_all.#png"), width = 8, height = 6, res = 300, units = "in")
 #Counts
-par(mfrow=c(2,2))
+
 boxplot(log2(mynd_counts +1), col=rainbow(20), main="Counts", ylab="Log2(Counts+1)",las=2,cex.axis=0.8)
 
 #CPM
@@ -325,7 +330,7 @@ boxplot(log2(mynd_abundance +1), col=rainbow(20), main="TPM", ylab="Log2(TPM+1)"
 #Voom
 boxplot(mynd_voom, col=rainbow(20), main="Voom", ylab="Voom",las=2,cex.axis=0.8)
 
-dev.off()
+#dev.off()
 ```
 
 ### Heatmap: Spearman
@@ -337,9 +342,9 @@ par(mfrow=c(1,1))
 col.cell <- c('grey','black')[mynd_metadata$status]
 cormatrix = rcorr(as.matrix(mynd_voom), type='spearman')
 corrdata = as.matrix(cormatrix$r)
-png(paste0(work_plots, "HM_Spearman.#png"), width = 20, height = 14, res = 300, units = "in")
+#png(paste0(work_plots, "HM_Spearman.#png"), width = 20, height = 14, res = 300, units = "in")
 heatmap.2(corrdata, main="Voom Spearman",ColSideColors = col.cell, trace="none", col = c(sort(brewer.pal(9,"Blues")),brewer.pal(9,"Reds")), margins = c(1,1))
-dev.off()
+#dev.off()
 ```
 
 ### Heatmap: Pearson 
@@ -347,47 +352,45 @@ dev.off()
 #Pearson
 cormatrix = rcorr(as.matrix(mynd_voom), type='pearson')
 corrdata = as.matrix(cormatrix$r)
-png(paste0(work_plots, "HM_Pearson.#png"), width = 20, height = 14, res = 300, units = "in")
+#png(paste0(work_plots, "HM_Pearson.#png"), width = 20, height = 14, res = 300, units = "in")
 heatmap.2(corrdata, main="Voom Pearson", ColSideColors = col.cell,trace="none", col = c(sort(brewer.pal(9,"Blues")),brewer.pal(9,"Reds")), margins = c(1,1))
-dev.off()
+#dev.off()
 ```
 
 ### Tree: Euclidean
 ```{r tree.euclidean, echo=TRUE, fig.width=20, fig.height=10, res=300}
 #Euclidean distance with the transposed matrix
 sampleTree = hclust(dist(mynd_voom_t), method = "average")
-png(paste0(work_plots, "tree_euclidean.#png"), width = 20, height = 10, res = 300, units = "in")
+#png(paste0(work_plots, "tree_euclidean.#png"), width = 20, height = 10, res = 300, units = "in")
 plot(sampleTree, main = "Sample clustering to detecting outliers", 
      sub = "Function: hclust, Method: average from Euclidean distance", xlab = "samples", 
      cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.5, cex.sub = 1.5)
-dev.off()
+#dev.off()
 ```
 
 ### Tree: Spearman 
 ```{r tree.spearman, echo=TRUE, fig.width=20, fig.height=10, res=300}
 #Spearman correlation #10 min
-png(paste0(work_plots, "tree_Spearman.#png"), width = 20, height = 10, res = 300, units = "in")
-plot(hcluster(mynd_voom_t, method= "spearman", link="average" ), 
-     cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, main= "Hierarchical Clustering", 
-     sub = "Function: hcluster, Method: Spearman", xlab = "samples")
-dev.off()
+#png(paste0(work_plots, "tree_Spearman.#png"), width = 20, height = 10, res = 300, units = "in")
+#plot(hcluster(mynd_voom_t, method= "spearman", link="average" ), 
+#     cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, main= "Hierarchical Clustering", 
+#     sub = "Function: hcluster, Method: Spearman", xlab = "samples")
+#dev.off()
 ```
 
 ### Sex Check UTY vs XIST
 ```{r sex check, echo=TRUE, fig.width=20, fig.height=10, res=300}
-png(paste0(work_plots, "sex_check.#png"), width = 20, height = 10, res = 300, units = "in")
 total = merge(mynd_voom_t, mynd_metadata, by = 0)
 total$mismatch = ""
 labelIndicesWeWant <- total$gender  == "M" & total$ENSG00000229807.11 > 5 | total$gender ==  "F" & total$ENSG00000183878.15 > .2
 total$mismatch[labelIndicesWeWant] <- as.character(total$Row.names[labelIndicesWeWant])
 p = ggplot(total, aes(x = ENSG00000229807.11, y = ENSG00000183878.15, color = gender, label = mismatch))
 p + geom_point() + geom_text_repel() + xlab("XIST") + ylab("UTY")
-dev.off()
 ```
 
 ### Marker Gene Expression
 ```{r cell marker expression, echo=TRUE, fig.width=22, fig.height=11, res=300}
-png( "cell_marker_genes.png", width = 22, height = 11, res = 300, units = "in")
+#png( "cell_marker_genes.png", width = 22, height = 11, res = 300, units = "in")
 my_palette <- colorRampPalette(c('Light Blue', "White", "Red"))
 library(gplots)
 
@@ -400,5 +403,5 @@ total$Row.names = NULL
 total = as.matrix(log2(total + 1))
 
 heatmap.2(total, dendrogram="both", Rowv =T, Colv=F, cexCol = .4, trace="none", scale = "none", col=my_palette, adjRow = c(0, 0.5), margins = c(6, 8), key = TRUE, keysize = 1.3, xlab = "Samples", ylab = "Genes", main = "Expression")
-dev.off()
+#dev.off()
 

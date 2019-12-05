@@ -47,26 +47,22 @@ knitr::opts_chunk$set(
           tidy = FALSE,
             fig.show = "hold")
             work_plots = "/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/plots"
-```
+            ```
 
 
 ## Cohort Overview
 ```{r cohort, echo=TRUE, results = 'asis'}
 x = read.table('/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/mynd_metadata_9_19_19.txt', row.names = 1,  header = T, check.names = F)
 
+
 p = table(x$status)
 p %>% kable(booktabs = TRUE)
 
 a = table(x$status, x$gender)
 a %>% kable(booktabs = TRUE)
-chi = chisq.test(x$status, x$gender)$p.value
-chi
 
-x$rna_batch = as.factor(x$rna_batch)
 b = table(x$status, x$rna_batch)
 b %>% kable(booktabs = TRUE)
-chi1 = chisq.test(x$status, x$rna_batch)$p.value
-chi1
 
 c = table(x$status, x$population_assignment)
 c %>% kable(booktabs = TRUE)
