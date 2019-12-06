@@ -26,6 +26,7 @@ output:
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 if(!require("variancePartition")) BiocManager::install("variancePartition"); library("variancePartition")
+library(edgeR)
 if(!require("doParallel")) install.packages("doParallel"); library("doParallel")
 knitr::opts_chunk$set( 
   warning=FALSE,
@@ -66,13 +67,14 @@ identical(colnames(geneExp), rownames(info1))
 ### Violin Plot
 ```{r violion.partition, echo=TRUE, fig.width=14, fig.height=8, res = 300}
 #removed all low expressed genes
-ge <- geneExp[ rowMeans(geneExp) > 1, ] #Let's check if that's a good threshold
-
+cpm = cpm(geneExp)
+keep.exp = rowSums(cpm > 1) >= 0.3*ncol(geneExp)
+ge = geneExp[keep.exp,]
 #Variables to run Variance Partition with selected variables. Remember (1|..) for factors!
-form <- ~ (1|status) + (1|gender) + age + mds1 + mds2 + mds3 + mds4 + (1|rna_batch)
+form <- ~(1|status) +  age + (1|gender) + (1|rna_batch) + mds1 + mds2 + mds3 + mds4 + PCT_RIBOSOMAL_BASES + rin_value + PCT_USABLE_BASES
 
 #Variables to do the diagram for selected variables:
-form_1 <- ~ status + gender + mds1 + mds2 + mds3 + mds4 + age + rna_batch
+form_1 <- ~ status + age + gender + rna_batch + mds1 + mds2 + mds3 + mds4 + PCT_RIBOSOMAL_BASES + rin_value + PCT_USABLE_BASES 
 
 #The variance partiation run:
 varPart <- fitExtractVarPartModel( ge, form, info1 )
