@@ -1,5 +1,5 @@
 ## MyND_Analysis
-#### December 5th, 2019
+#### December 6th, 2019
 MyND Project 
 
 > All code is in R and depends on packages from CRAN and/ or Bioconductor.
@@ -33,7 +33,7 @@ RESULT PAGES - Updated October 3rd
 	- [PEER](https://rajlabmssm.github.io/MyND-Analysis/qc/peer_correlation.html)
 
 6. Differential Expression
-- [Differential Gene Expression](https://rajlabmssm.github.io/MyND-Analysis/de/dte/mynd_de_output.html)
+- [Differential Gene Expression](https://rajlabmssm.github.io/MyND-Analysis/de/dge/test.html)
 -------------------------------------
 -------------------------------------
 **************************************
