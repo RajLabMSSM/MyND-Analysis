@@ -223,10 +223,11 @@ colnames(res) = c("cor")
 sig_de = res_names[res_names$adj.P.Val < .05,]
 res$de = rownames(res) %in% sig_de$gene_id
 res$index = c(1:nrow(res))
+res$ldopa = NULL
 p = ggplot(res, aes(index, cor, color = de))
 p + geom_point() + scale_color_manual(values =c("black", "red")) + geom_hline(aes(yintercept= .006, linetype = "DGE Average r"), colour = 'red') +
     geom_hline(aes(yintercept= .011, linetype = "Overall average r"), colour= 'blue') +
-    scale_linetype_manual(name = "Average Correlation",  values = c(2, 2), guide = guide_legend(override.aes = list(color = c("blue", "red")))) 
+    scale_linetype_manual(name = "Average Correlation",  values = c(2, 2), guide = guide_legend(override.aes = list(color = c("red", "blue")))) 
 
 #mitochondrial
 mito_filt = merge(res_names, mito, by.x = 'GeneSymbol', by.y = 'V2')
