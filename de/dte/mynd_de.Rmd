@@ -26,7 +26,7 @@ suppressPackageStartupMessages(library(RColorBrewer))
 
 #Distributions
 ```{r Distributions}
-res = read.table("/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/differential_expression_11.04.2019/rsem.mynd.design_1.txt", header = T)
+res = read.table("/sc/hydra/projects/pd-omics/evan/MyND-Analysis/data/results/rsem.mynd.dte.txt", header = T)
 head(res)
 p = ggplot(res, aes(P.Value))
 p + geom_density(color="darkblue", fill="lightblue") + theme_bw() + ggtitle("P Value Distribution")
@@ -84,7 +84,7 @@ topdge = x[c(1:100),]
 topdge = topdge[c(1)]
 
 #read in expression matrix
-y = read.table('/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/mynd.counts.filtered.txt', header = T, check.names = F)
+y = read.table('/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/mynd.isoforms', header = T, check.names = F)
 #head(y)
 tot =  merge(res, ann, by  = 0, sort = F)
 dim(y)

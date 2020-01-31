@@ -1,5 +1,5 @@
 ## MyND_Analysis
-#### December 6th, 2019
+#### January 31st, 2020
 MyND Project 
 
 > All code is in R and depends on packages from CRAN and/ or Bioconductor.
@@ -7,7 +7,7 @@ MyND Project
 > This includes code and plots. Exploratory analysis and intermediate processing files are too large for this repository.
 
 **************************************
-RESULT PAGES - Updated October 3rd
+RESULT PAGES - Updated Jan 31st
 **************************************
 
 1. [MultiQC](https://rajlabmssm.github.io/MyND-Analysis/qc/multiqc_report.html): Results of multiqc on full set of samples (337) - including previously determined outliers, AD, and MCI cases
@@ -34,6 +34,8 @@ RESULT PAGES - Updated October 3rd
 
 6. Differential Expression
 - [Differential Gene Expression](https://rajlabmssm.github.io/MyND-Analysis/de/dge/test.html)
+	- [Comparisons with Other Datasets](https://rajlabmssm.github.io/MyND-Analysis/de/dge/comparisons.html)
+
 -------------------------------------
 -------------------------------------
 **************************************
