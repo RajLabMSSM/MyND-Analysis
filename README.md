@@ -1,5 +1,5 @@
 ## MyND_Analysis
-#### January 31st, 2020
+#### March 9th, 2020
 MyND Project 
 
 > All code is in R and depends on packages from CRAN and/ or Bioconductor.
@@ -35,7 +35,7 @@ RESULT PAGES - Updated Jan 31st
 6. Differential Expression
 - [Differential Gene Expression](https://rajlabmssm.github.io/MyND-Analysis/de/dge/test.html)
 	- [Comparisons with Other Datasets](https://rajlabmssm.github.io/MyND-Analysis/de/dge/comparisons.html)
-
+	- [Disease Duration Correlation](https://rajlabmssm.github.io/MyND-Analysis/de/disease_duration/disease_duration.html)
 -------------------------------------
 -------------------------------------
 **************************************

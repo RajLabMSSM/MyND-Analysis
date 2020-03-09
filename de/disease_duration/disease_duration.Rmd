@@ -1,0 +1,101 @@
+---
+title: "Disease Duration Correlation"
+author: "Evan Udine"
+date: "3/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r Prepare data, include = F}
+library(data.table)
+library(ggplot2)
+library(dplyr)
+x = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/mynd_metadata_9_19_19.txt', header = T)
+head(x)
+x = x[!is.na(x$dd),]
+rownames(x) = x$rnaseq_id
+dim(x)
+head(x)
+x = x[c(3,4,5)]
+exp = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/mynd_voom_residuals.txt', header = T, check.names = F)
+head(exp)
+genes = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/dge/rsem.mynd.design_1.txt', hea =T)
+head(genes)
+head(x)
+
+texp = data.frame(t(exp), check.names = F)
+tot = merge(texp, x, by = 0)
+#head(tot)
+dim(tot)
+tot$Row.names = NULL
+tot$samples = NULL
+
+dd = data.frame(tot$dd)
+rownames(dd) = rownames(tot)
+```
+
+
+```{r Analysis}
+res = data.frame(t((cor(tot$dd, tot, method = "kendall"))), check.names = F)
+head(res)
+colnames(res) = c("cor")
+#head(res)
+res$index = c(1:nrow(res))
+sig_de = genes[genes$adj.P.Val < .05,]
+#head(sig_de)
+
+res$de = rownames(res) %in% rownames(sig_de)
+#head(res)
+sig = res[res$de == TRUE,]
+#sig
+sig$gene_id = rownames(sig)
+ann = read.table('Desktop/MyND/ens.geneid.gencode.v30', hea = T)
+#head(ann)
+sigt = merge(sig, ann, by = "gene_id")
+sigt = sigt[order(sigt$cor),]
+sigt$GeneSymbol<- factor(sigt$GeneSymbol, levels = sigt$GeneSymbol[order(sigt$cor)])
+#head(sigt)
+p = ggplot(sigt, aes(GeneSymbol, cor, fill = cor))
+p + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90)) + theme(axis.text.x = element_text(size = 1))
+```
+
+### COX7B1 {.tabset .tabset-fade .tabset-pills}
+```{r Correlations, echo = FALSE}
+cor.test(tot$dd, tot$ENSG00000131174.6 , method = "kendall" )
+tot %>%
+  ggplot(aes(dd, ENSG00000131174.6)) + geom_point()  + theme_bw() + 
+  xlab(label = "disease_duration")  + stat_smooth(method = "lm", color = "black")
+```
+
+### PET100 {.tabset .tabset-fade .tabset-pills}
+```{r AMP, echo = FALSE}
+cor.test(tot$dd, tot$ENSG00000229833.9, method = "kendall")
+tot %>%
+  ggplot(aes(dd, ENSG00000229833.9)) + geom_point()  + theme_bw() + 
+  xlab(label = "disease_duration") + stat_smooth(method = "lm", color = "black")
+```
+
+### MORC2 {.tabset .tabset-fade .tabset-pills}
+```{r Zhang, echo = FALSE}
+cor.test(tot$dd, tot$ENSG00000133422.13, method = "kendall")
+tot %>%
+  ggplot(aes(dd, ENSG00000133422.13)) + geom_point()  + theme_bw() + 
+  xlab(label = "disease_duration") + stat_smooth(method = "lm", color = "black")
+```
+
+### RCCD1 {.tabset .tabset-fade .tabset-pills}
+```{r Microglia, echo = FALSE}
+cor.test(tot$dd, tot$ENSG00000166965.12, method = "kendall")
+tot %>%
+  ggplot(aes(dd, ENSG00000166965.12)) + geom_point()  + theme_bw() + 
+  xlab(label = "disease_duration") + stat_smooth(method = "lm", color = "black")
+``` 
