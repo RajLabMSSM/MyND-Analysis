@@ -1,5 +1,5 @@
 ## MyND_Analysis
-#### March 9th, 2020
+#### March 11th, 2020
 MyND Project 
 
 > All code is in R and depends on packages from CRAN and/ or Bioconductor.
@@ -38,7 +38,7 @@ RESULT PAGES - Updated Jan 31st
 	- [Disease Duration Correlation](https://rajlabmssm.github.io/MyND-Analysis/de/disease_duration/disease_duration.html)
 
 7. AMP-PD Analyses
-- [amp-pd qc](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/amppdqc.html)
+- [amp-pd qc](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/ampqc.html)
 - [variance partition](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/vp.html)
 - [differential expression](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/output.html)
 -------------------------------------
