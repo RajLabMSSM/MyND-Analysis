@@ -33,9 +33,14 @@ RESULT PAGES - Updated Jan 31st
 	- [PEER](https://rajlabmssm.github.io/MyND-Analysis/qc/peer_correlation.html)
 
 6. Differential Expression
-- [Differential Gene Expression](https://rajlabmssm.github.io/MyND-Analysis/de/dge/test.html)
+- [MyND Differential Gene Expression](https://rajlabmssm.github.io/MyND-Analysis/de/dge/test.html)
 	- [Comparisons with Other Datasets](https://rajlabmssm.github.io/MyND-Analysis/de/dge/comparisons.html)
 	- [Disease Duration Correlation](https://rajlabmssm.github.io/MyND-Analysis/de/disease_duration/disease_duration.html)
+
+7. AMP-PD Analyses
+- [amp-pd qc](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/amppdqc.html)
+- [variance partition](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/vp.html)
+- [differential expression](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/output.html)
 -------------------------------------
 -------------------------------------
 **************************************
