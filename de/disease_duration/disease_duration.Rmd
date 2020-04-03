@@ -1,31 +1,32 @@
 ---
-title: "Disease Duration Correlation"
+title: "LDOPA Correlation"
 author: "Evan Udine"
-date: "3/9/2020"
-output: html_document
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   smooth_scroll: true
+   self_contained: true 
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r Prepare data, include = F}
 library(data.table)
 library(ggplot2)
 library(dplyr)
+```
+
+```{r load_data}
 x = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/mynd_metadata_9_19_19.txt', header = T)
 head(x)
 x = x[!is.na(x$dd),]
 rownames(x) = x$rnaseq_id
 dim(x)
 head(x)
-x = x[c(3,4,5)]
+x = x[c(5)]
 exp = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/mynd_voom_residuals.txt', header = T, check.names = F)
 head(exp)
 genes = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/dge/rsem.mynd.design_1.txt', hea =T)
@@ -39,37 +40,49 @@ dim(tot)
 tot$Row.names = NULL
 tot$samples = NULL
 
-dd = data.frame(tot$dd)
-rownames(dd) = rownames(tot)
+tot = as.matrix(tot)
+dim(tot)
 ```
 
+## L Dopa Analysis
+```{r analysis, echo=FALSE}
+#convert data to matrix
+tot = as.matrix(tot)
+#Create empty vector
+a <- vector("list", 13668)
 
-```{r Analysis}
-res = data.frame(t((cor(tot$dd, tot, method = "kendall"))), check.names = F)
-head(res)
-colnames(res) = c("cor")
-#head(res)
-res$index = c(1:nrow(res))
-sig_de = genes[genes$adj.P.Val < .05,]
-#head(sig_de)
+#loop through matrix and run correlation across all columns of matrix
+for (i in 1:13668) {
+ a[[i]] = data.frame(cor.test(tot[,"dd"], tot[,i], method = "kendall")[c("p.value", "estimate", "statistic")])
+}
+head(a)
+#Organize Results
+lres <- sapply(a, '[', c("p.value","estimate","statistic"))
+x = data.frame(t(lres))
+head(x)
+x$p.value = unlist(x$p.value)
+x$estimate = unlist(x$estimate)
+x$statistic = unlist(x$statistic)
 
-res$de = rownames(res) %in% rownames(sig_de)
-#head(res)
-sig = res[res$de == TRUE,]
-#sig
-sig$gene_id = rownames(sig)
-ann = read.table('Desktop/MyND/ens.geneid.gencode.v30', hea = T)
-#head(ann)
-sigt = merge(sig, ann, by = "gene_id")
-sigt = sigt[order(sigt$cor),]
-sigt$GeneSymbol<- factor(sigt$GeneSymbol, levels = sigt$GeneSymbol[order(sigt$cor)])
-#head(sigt)
-p = ggplot(sigt, aes(GeneSymbol, cor, fill = cor))
-p + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90)) + theme(axis.text.x = element_text(size = 1))
+x = x[order(x$p.value),]
+#remove disease duration correlation with itself
+x = x[-c(1),]
+
+#Run fdr correction
+x$fdr = p.adjust(x$p.value)
+
+#-log10 for plotting
+x$logp = -log10(x$p.value)
+range(x$fdr)
+
+#Create 'volcano plot' for association
+ggplot(x, aes(estimate, logp, color = fdr)) + geom_point() + theme_bw()
+
 ```
 
 ### COX7B1 {.tabset .tabset-fade .tabset-pills}
 ```{r Correlations, echo = FALSE}
+tot = data.frame(tot, check.names = F)
 cor.test(tot$dd, tot$ENSG00000131174.6 , method = "kendall" )
 tot %>%
   ggplot(aes(dd, ENSG00000131174.6)) + geom_point()  + theme_bw() + 

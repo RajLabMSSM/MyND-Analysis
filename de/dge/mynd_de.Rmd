@@ -14,7 +14,6 @@ output:
 #Set Up
 ##Libraries
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 sessionInfo()
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(ggplot2))
@@ -75,7 +74,7 @@ head(merged_ann)
 #Heatmaps {.tabset .tabset-fade .tabset-pills}
 ```{r heatmaps, results='asis'} 
 #Inlclude heatmap of top 100 Differentially Expressed Genes
-x = read.table('/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/differential_expression_11.04.2019/rsem.mynd.design_7.txt', header = T, check.names  = F)
+x = read.table('/sc/hydra/projects/pd-omics/mynd/analyses/analysis_9_19_19/differential_expression_11.04.2019/rsem.mynd.design_1.txt', header = T, check.names  = F)
 dim(x)
 
 #Select ids top 50 genes
@@ -112,6 +111,7 @@ identical(colnames(z.mat), rownames(pheno))
 col.status <- c('grey','black')[pheno$status]
 my_palette <- rev(brewer.pal(9, "RdBu"))
 
+pdf(tmp.pdf)
 #Run heatmap2 for visualization - No covariate Regression
 heatmap.2(
   z.mat,
@@ -128,6 +128,8 @@ heatmap.2(
   ylab = "Genes",
   ColSideColors = col.status)
 title(main = "Gene Level Top 100 DGE")
+
+dev.off()
 
 #regress out covariates
 getResiduals <- function(exprLine) {
