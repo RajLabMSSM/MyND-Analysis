@@ -1,5 +1,5 @@
 ---
-title: "LDOPA Correlation"
+title: "Disease Duration Correlation"
 author: "Evan Udine"
 date: "`r Sys.Date()`"
 output:
@@ -21,17 +21,17 @@ library(dplyr)
 
 ```{r load_data}
 x = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/mynd_metadata_9_19_19.txt', header = T)
-head(x)
+
 x = x[!is.na(x$dd),]
 rownames(x) = x$rnaseq_id
 dim(x)
-head(x)
+
 x = x[c(5)]
 exp = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/mynd_voom_residuals.txt', header = T, check.names = F)
-head(exp)
+
 genes = read.table('Desktop/MyND/Paper_Dec_2019/differential_expression_11.04.2019/dge/rsem.mynd.design_1.txt', hea =T)
-head(genes)
-head(x)
+
+
 
 texp = data.frame(t(exp), check.names = F)
 tot = merge(texp, x, by = 0)
@@ -44,7 +44,7 @@ tot = as.matrix(tot)
 dim(tot)
 ```
 
-## L Dopa Analysis
+## Diseae Duration Analysis
 ```{r analysis, echo=FALSE}
 #convert data to matrix
 tot = as.matrix(tot)
