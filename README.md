@@ -37,7 +37,7 @@ RESULT PAGES - Updated Jan 31st
 	- [Comparisons with Other Datasets](https://rajlabmssm.github.io/MyND-Analysis/de/dge/comparisons.html)
 	- [Disease Duration Correlation](https://rajlabmssm.github.io/MyND-Analysis/de/disease_duration/disease_duration.html)
 	- [L-Dopa Correlation](https://rajlabmssm.github.io/MyND-Analysis/de/ldopa/ldopacorr.html)
-
+	- [Replication with Giulietta's Monocytes](https://rajlabmssm.github.io/MyND-Analysis/de/replication.html)
 7. AMP-PD Analyses
 - [amp-pd qc](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/ampqc.html)
 - [variance partition](https://rajlabmssm.github.io/MyND-Analysis/amp-pd/vp.html)

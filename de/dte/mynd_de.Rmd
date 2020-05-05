@@ -67,9 +67,11 @@ vp + geom_point() +
   theme(plot.title = element_text(hjust = 0.5)) + theme_bw() +
   xlim(-2.5,2.5) + ylim(0,10) + ylab("-log10 pvalue")
 dev.off()
-ann = read.table('/sc/hydra/projects/pd-omics/GRCH38.p12/ens.geneid.gencode.v30', row.names = 1,  header = T, check.names = F)
+ann = read.table('/sc/hydra/projects/pd-omics/GRCH38.p12/ens.txid.gencode.v30', row.names = 1,  header = T, check.names = F)
 head(ann)
 
 merged_ann = merge(res, ann, by  = 0, sort = F)
 head(merged_ann)
+
+write.table(merged_ann, "monocytes_dte_rsem.txt", sep = "\t", quote = F, row.names = F)
 ```
