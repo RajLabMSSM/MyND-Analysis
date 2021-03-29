@@ -7,6 +7,16 @@ MyND Project
 > This includes code and plots. Exploratory analysis and intermediate processing files are too large for this repository.
 
 **************************************
+NEW analysis for revision - Mar 2021
+**************************************
+
+Microglia dataset 36 PD vs 116 CT: 
+
+1.[Looking at covariates](https://rajlabmssm.github.io/MyND-Analysis/mynd_revision/microglia_analysis/01_vp.html). Cannonical correlation and violin plots from Variance Partition. 
+
+2.[Differential expression analysis](https://rajlabmssm.github.io/MyND-Analysis/mynd_revision/microglia_analysis/02_deg_pdxct_dupCor_death.html). The model accounts for PMI and cause of death. Tool = Limma with Duplicate correlation to account for repeated measures. 
+
+**************************************
 RESULT PAGES - Updated Jan 31st
 **************************************
 
