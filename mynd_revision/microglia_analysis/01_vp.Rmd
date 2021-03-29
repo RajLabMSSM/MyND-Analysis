@@ -1,0 +1,153 @@
+---
+title: "Looking at covariates"
+subtitle: ""
+author:  |
+ | Katia de Paiva Lopes 
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output: 
+ rmarkdown::html_document:
+   theme: united
+   highlight: tango
+   code_folding: hide
+   toc: true
+   toc_float: true
+   df_print: paged
+   smooth_scroll: true
+   number_sections: false
+   self_contained: true  
+---
+
+> Microglia samples | PD and CT 
+
+```{r clean.variables, echo=FALSE}
+#This command clean all variables. BE CAREFULL!!! 
+rm(list = setdiff(ls(), lsf.str()))
+```
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+if(!require("variancePartition")) install.packages("variancePartition"); library("variancePartition")
+if(!require("limma")) install.packages("limma"); library("limma")
+if(!require("stats")) install.packages("stats"); library("stats")
+if(!require("ggfortify")) install.packages("ggfortify"); library("ggfortify")
+if(!require("gplots")) install.packages("gplots"); library("gplots")
+if(!require("factoextra")) install.packages("factoextra"); library("factoextra")
+if(!require("pamr")) BiocManager::install("pamr"); library("pamr")
+if(!require("DESeq2")) BiocManager::install("DESeq2"); library("DESeq2")
+if(!require("edgeR")) BiocManager::install("edgeR"); library("edgeR")
+if(!require("broom")) BiocManager::install("broom"); library("broom")
+if(!require("tidyverse")) BiocManager::install("tidyverse"); library("tidyverse")
+
+
+knitr::opts_chunk$set( 
+  warning=FALSE,
+  message=FALSE,
+  results = 'asis',
+  error = FALSE,
+  tidy = FALSE,
+  fig.show = "hold")
+```
+
+```{r Helper Functions, echo=FALSE}
+createDT <- function(DF, caption="", scrollY=500){
+  data <- DT::datatable(DF, caption=caption,
+    extensions =  'Buttons',
+    options = list( dom = 'Bfrtip', 
+                    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
+                    scrollY = scrollY, scrollX=T, scrollCollapse = T, paging = F,  
+                      columnDefs = list(list(className = 'dt-center', targets = "_all"))
+    )
+  ) 
+   return(data)
+}
+```
+
+```{r folders, echo=TRUE}
+work_dir = "~/pd-omics/katia/MyND/mynd_rev1/microglia_PDxCT/"
+expression_dir = "~/pd-omics/katia/MyND/mynd_rev1/microglia_PDxCT/"
+metadata_path = "~/pd-omics/katia/MyND/mynd_rev1/microglia_PDxCT/join_metadata/"
+```
+
+```{r input.metadata, echo=TRUE}
+load(paste0(metadata_path, "metadata_PD_CT_mic.Rdata"))
+
+# Transforms characters columns in factors columns 
+indx <- sapply(join_metadata, is.character)
+join_metadata[indx] <- lapply(join_metadata[indx], function(x) as.factor(x))
+join_metadata$ph = as.numeric(as.character(join_metadata$ph))
+# str(join_metadata) #shows class for all columns 
+```
+
+## HM: correlating the covariates 
+<div style="text-align: justify"> 
+"Evaluating the correlation between variables in a important part in interpreting variancePartition results. When comparing two **continuous** variables, Pearson
+correlation is widely used. But variancePartition includes **categorical** variables in the model as well. In order to accommodate the correlation between a continuous and a categorical variable, or two categorical variables we used canonical correlation analysis. **Canonical Correlation Analysis (CCA)** is similar to correlation between two vectors, except that CCA can accommodate matricies as well." Gabriel Hoffman. 
+</div>
+```{r hm_variance_partition, echo=TRUE, fig.width=10, fig.height=8, dpi=300}
+#form <- as.formula(paste("", paste(colnames(join_metadata), collapse=" + "), sep=" ~ ")) #form contains the design 
+
+form <- ~ batch + donor_id + donor_tissue + diagnosis + main_diagnosis +  
+    age + sex + tissue + cause_of_death_categories + 
+    picard_pct_mrna_bases + picard_pct_pf_reads_aligned + 
+    picard_pct_ribosomal_bases + picard_percent_duplication + 
+    picard_summed_mean + picard_summed_median + pmd_minutes + 
+    psychopharmaca + star_uniquely_mapped + star_uniquely_mapped_percent + 
+    featurecounts_assigned
+
+C = variancePartition::canCorPairs(form, join_metadata)
+
+# pdf(paste0(work_dir, "figures_pdf/canonical_hm.pdf"), width = 10, height = 8)
+plotCorrMatrix(C, margins = c(15,18))
+# dev.off()
+```
+
+### Donors with 01 tissue 
+```{r donors_1tissue, echo=TRUE}
+### Number of tissues by donor 
+tissuesBydonor = rowSums(table(join_metadata[,c("donor_id","tissue")]))
+# createDT(as.data.frame(tissuesBydonor))
+
+sum(rowSums(table(join_metadata[,c("donor_id","tissue")]))==1)
+```
+
+```{r donor.id_1tissue, echo=TRUE}
+donor1sample = names(which(rowSums(table(join_metadata[,c("donor_id","tissue")]))>1))
+donor1sample
+```
+
+## Input expression 
+```{r expression, echo=TRUE}
+load(paste0(expression_dir, "expression_data/mic_pd_ct_filt.Rdata")) 
+dim(counts1) #17489   154
+```
+
+## VP: 154 samples
+
+If the covariate have NAs in the column, we can't fit a model for Limma or Dream. 
+
+```{r vp_alls, echo=TRUE, fig.width=8, fig.height=6, res=300 }
+# library(doParallel)
+# cl <- makeCluster(4)
+# registerDoParallel(cl)
+#  
+# form <- ~ (1|donor_id) + age + (1|tissue) + (1|main_diagnosis) + (1|sex) + pmd_minutes + picard_pct_mrna_bases + picard_summed_mean + picard_pct_pf_reads_aligned +  picard_pct_ribosomal_bases + (1|cause_of_death_categories) + batch 
+# 
+# varPart_tx <- suppressWarnings( fitExtractVarPartModel( counts1, form, join_metadata) )
+#  
+# save(varPart_tx, file = paste0(work_dir, "varPart_tx_pd_ct.RData"))
+
+load(paste0(work_dir, "varPart_tx_pd_ct.RData"))
+vp <- sortCols( varPart_tx )
+
+# pdf(paste0(work_dir, "figures_pdf/vp_pd_ct.pdf"), width = 8, height = 6)
+plotVarPart(vp) +
+  ggeasy::easy_rotate_x_labels(angle = 70, side = c("right"))
+# dev.off()
+```
+
+```{r}
+sessionInfo()
+```
