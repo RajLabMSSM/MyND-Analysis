@@ -1,0 +1,208 @@
+---
+title: "Eigengene analysis"
+subtitle: "Protein codings"
+author: |
+ | Katia de Paiva Lopes
+ | Ricardo Assunção Vialle
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   smooth_scroll: true
+   number_sections: false
+   self_contained: true  
+---
+
+> Strategy 04 SVA | 
+> deepSplit = 4 |
+> Topology = signed |
+> Gencode 30 |
+> 230 samples. 
+
+## Module eigengenes 
+
+```{r clean.variables, echo=TRUE, results='hide'}
+#This command clean all variables. BE CAREFULL!!! 
+# SOURCES: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2938757/ 
+#https://bioconductor.org/packages/release/bioc/vignettes/GeneOverlap/inst/doc/GeneOverlap.pdf
+rm(list = setdiff(ls(), lsf.str()))
+```
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+
+if(!require("ggplot2")) BiocManager::install("ggplot2"); library("ggplot2")
+if(!require("ggpubr")) BiocManager::install("ggpubr"); library("ggpubr")
+if(!require("WGCNA")) BiocManager::install("WGCNA"); library("WGCNA")
+if(!require("ggbeeswarm")) BiocManager::install("ggbeeswarm"); library("ggbeeswarm")
+
+knitr::opts_chunk$set( 
+  warning=FALSE,
+  message=FALSE,
+  results = 'hide',
+  error = FALSE,
+  tidy = FALSE,
+  fig.show = "hold")
+```
+
+## Input data 
+```{r input.exp.data, echo=TRUE}
+#work_folder = "~/pd-omics/katia/scripts/GitHub_scripts/WGCNA_MyND/2nd_batch_Analysis/FINAL/04_sva/deepsplit_4/signed/lysosome_approach_mar2020/"
+work_folder = "~/pd-omics/MyND-Analysis/mynd_revision/eigen_approach/"
+
+load("~/pd-omics/katia/scripts/Scripts_MyND/final_mynd/datExpr.RData")
+# dim(metadata_all)
+# dim(datExpr)
+
+# Path to a file with the modules information. Two columns with header: 1) gene_ids 2) moduleColors
+modules_file = "~/pd-omics/katia/scripts/GitHub_scripts/WGCNA_MyND/2nd_batch_Analysis/FINAL/04_sva/deepsplit_4/signed/Gene_modules.txt"
+
+# Load modules information
+wgcna_modules = read.table(modules_file, header = TRUE)
+
+# All files must be in the same folder specified bellow
+path_to_files = "~/pd-omics/katia/MyND/module_enrichment/Gene_lists4enrich/lists_Dec2019/"
+
+geneList_file_names = c("gencode30_lysosome_GO.csv")
+
+```
+
+## Gene list eigengene = Lysosome_GO
+The **Lysossome_GO list has 526 genes** that overlap with our protein coding genes. Here we are plotting the lysosomal list eigenene values for samples by status. Data normalized by voom and corrected by SVA. 
+
+```{r eigengene_list, echo=TRUE, results='asis'}
+  
+list_file = geneList_file_names[1]
+genelist4comparison = read.table(paste0(path_to_files,list_file), header = TRUE, stringsAsFactors = F)
+genelist4comparison = data.frame(genelist4comparison$ensembl)
+colnames(genelist4comparison) = c("ens")
+  
+tokeep = which(genelist4comparison$ens%in%wgcna_modules$gene_ids)
+genelist4comparison = data.frame(ens = genelist4comparison[tokeep,])
+
+# All intersect lysosomal genes
+gene_subset = datExpr[, wgcna_modules$gene_ids %in% genelist4comparison$ens]
+dim(gene_subset) #230 526
+
+# Eigenene of these genes
+MEList = moduleEigengenes(gene_subset, colors = rep("ME",ncol(gene_subset)))
+MEs = MEList$eigengenes
+MEs$sample = rownames(MEs)
+metadata_ME = data.frame(sample = rownames(metadata_all), status = metadata_all$status, stringsAsFactors = F)
+MEs_merged = merge(metadata_ME, MEs, by = "sample") # Merge garantees the same order 
+MEs_merged$status = as.factor(MEs_merged$status)
+
+```
+
+```{r boxplot.lysosomal_eigen, echo=TRUE, results='asis', fig.width=4, fig.height=4, out.width='60%', dpi=300}
+# table(MEs_merged$status)
+# status1 = PD  
+# status2 = Control  
+
+MEs_merged$status_name = NA
+MEs_merged$status_name[MEs_merged$status == 1] <- "PD"
+MEs_merged$status_name[MEs_merged$status == 2] <- "Control"
+MEs_merged$status_name = as.factor(MEs_merged$status_name)
+
+p_lyso = ggplot(MEs_merged, aes(x = status_name, y = MEME, fill = status_name)) + 
+  geom_boxplot(notch = TRUE, color = "black") +
+  ylab("Eigenene values") +
+  xlab("Status") + 
+  theme_classic() +
+  stat_compare_means( label.y = 1.2*max(MEs_merged$MEME))
+#png(paste0(work_folder, "Boxplot_Lysosome_526g.png"), width = 4, height = 6, res = 300, units = "in")
+p_lyso
+#dev.off()
+# The dots are samples! 
+```
+
+```{r boxplot.lysosomal_eigen2, echo=TRUE, results='asis', fig.width=3.8, fig.height=3, out.width='60%', dpi=300}
+p_lyso = ggplot(MEs_merged, aes(x = status_name, y = MEME, color = status_name)) + 
+  geom_boxplot(notch = FALSE, outlier.color = NA, color = "black", width = 0.7, lwd = 0.3) +
+  scale_color_manual(values = c("#4b8b57", "#ff8351")) +
+  ylab("Eigenene values") +
+  xlab("Status") + 
+  theme_classic() +
+  geom_beeswarm(size=0.6, alpha=1, groupOnX = TRUE, cex = 1.8) +
+  stat_compare_means( label.y = 1.2*max(MEs_merged$MEME))
+
+# png(paste0(work_folder, "beeswarm_lysosome_526g.png"), width = 3.8, height = 3, res = 300, units = "in")
+p_lyso
+# dev.off()
+```
+
+```{r mitochondria_list, echo=TRUE, results='asis'}
+geneList_file_names = c("gencode30_mitochondria_GO.csv")
+```
+
+## Gene list eigengene = Mitochondria_GO
+The **Mitochondria_GO list has 1302 genes** that overlap with our protein coding genes. Here we are plotting the mitochondrial list eigenene values for samples by status. Data normalized by voom and corrected by SVA. 
+
+```{r eigengene_list_mit, echo=TRUE, results='asis'}
+  
+list_file = geneList_file_names[1]
+genelist4comparison = read.table(paste0(path_to_files,list_file), header = TRUE, stringsAsFactors = F)
+genelist4comparison = data.frame(genelist4comparison$ensembl)
+colnames(genelist4comparison) = c("ens")
+  
+tokeep = which(genelist4comparison$ens%in%wgcna_modules$gene_ids)
+genelist4comparison = data.frame(ens = genelist4comparison[tokeep,])
+
+gene_subset = datExpr[, wgcna_modules$gene_ids %in% genelist4comparison$ens]
+#dim(gene_subset) #230 1302
+
+# Eigenene of these genes
+MEList = moduleEigengenes(gene_subset, colors = rep("ME",ncol(gene_subset)))
+MEs = MEList$eigengenes
+MEs$sample = rownames(MEs)
+metadata_ME = data.frame(sample = rownames(metadata_all), status = metadata_all$status, stringsAsFactors = F)
+MEs_merged = merge(metadata_ME, MEs, by = "sample") # Merge garantees the same order 
+MEs_merged$status = as.factor(MEs_merged$status)
+
+```
+
+### Boxplot 1302 genes: Mitochondria_GO
+```{r boxplot.mit_eigen, echo=TRUE, results='asis', fig.width=4, fig.height=4, out.width='60%', dpi=300}
+table(MEs_merged$status)
+# status1 = PD  
+# status2 = Control  
+
+MEs_merged$status_name = NA
+MEs_merged$status_name[MEs_merged$status == 1] <- "PD"
+MEs_merged$status_name[MEs_merged$status == 2] <- "Control"
+MEs_merged$status_name = as.factor(MEs_merged$status_name)
+
+p_mito = ggplot(MEs_merged, aes(x = status_name, y = MEME, fill = status_name)) + 
+  geom_boxplot(notch = TRUE, color = "black") +
+  #geom_jitter(alpha = 0.1) +
+  ylab("Eigenene values") + 
+  xlab("Status") +
+  theme_classic() +
+  stat_compare_means( label.y = 1.2*max(MEs_merged$MEME))
+
+p_mito
+# The dots are samples! 
+```
+
+```{r boxplot.mit_eigen2, echo=TRUE, results='asis', fig.width=3.8, fig.height=3, out.width='60%', dpi=300}
+p_mito = ggplot(MEs_merged, aes(x = status_name, y = MEME, color = status_name)) + 
+  geom_boxplot(notch = FALSE, outlier.color = NA, color = "black", width = 0.7, lwd = 0.3) +
+  scale_color_manual(values = c("#4b8b57", "#ff8351")) +
+  ylab("Eigenene values") +
+  xlab("Status") + 
+  theme_classic() +
+  geom_beeswarm(size=0.6, alpha=1, groupOnX = TRUE, cex = 1.8) +
+  stat_compare_means( label.y = 1.2*max(MEs_merged$MEME))
+
+# png(paste0(work_folder, "beeswarm_mitocho_1302g.png"), width = 3.8, height = 3, res = 300, units = "in")
+p_mito
+# dev.off()
+
+```
