@@ -134,8 +134,9 @@ p_lyso = ggplot(MEs_merged, aes(x = status_name, y = MEME, color = status_name))
   stat_compare_means( label.y = 1.2*max(MEs_merged$MEME))
 
 # png(paste0(work_folder, "beeswarm_lysosome_526g.png"), width = 3.8, height = 3, res = 300, units = "in")
+pdf(paste0(work_folder, "beeswarm_lysosome_526g.pdf"), width = 3.8, height = 3)
 p_lyso
-# dev.off()
+dev.off()
 ```
 
 ```{r mitochondria_list, echo=TRUE, results='asis'}
@@ -202,7 +203,8 @@ p_mito = ggplot(MEs_merged, aes(x = status_name, y = MEME, color = status_name))
   stat_compare_means( label.y = 1.2*max(MEs_merged$MEME))
 
 # png(paste0(work_folder, "beeswarm_mitocho_1302g.png"), width = 3.8, height = 3, res = 300, units = "in")
+pdf(paste0(work_folder, "beeswarm_mitocho_1302g.pdf"), width = 3.8, height = 3)
 p_mito
-# dev.off()
+dev.off()
 
 ```
