@@ -1,0 +1,112 @@
+---
+title: "Single cell check"
+subtitle: ""
+author: |
+ | Katia de Paiva Lopes
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output:
+ rmarkdown::html_document:
+   theme: spacelab
+   highlight: zenburn
+   code_folding: show
+   toc: true
+   toc_float: true
+   smooth_scroll: true
+   number_sections: false
+   self_contained: true  
+---
+
+```{r clean.variables, echo=TRUE, results='hide'}
+rm(list = setdiff(ls(), lsf.str()))
+```
+
+```{r load_lib}
+library(Seurat)
+library(ggplot2)
+library(tidyverse)
+library(kableExtra)
+library(ggeasy)
+```
+
+## Input
+```{r input_data, fig.width=5, fig.height=4}
+pd_path = "~/pd-omics/brian/PD_scRNAseq/Data/"
+
+mynd <- readRDS(paste0(pd_path, "processed_seurat_obj.RDS"))
+mynd 
+
+p_query <- DimPlot(object = mynd, label = TRUE, label.size = 4, repel = TRUE) + 
+  NoLegend() +
+  labs(title = "MyND-PD")
+p_query
+
+```
+
+## Number of cells by sample
+### Table
+```{r, cells_sample}
+cells_sample <- as.character(mynd@meta.data$HTO)
+
+as.data.frame(table(cells_sample), useNA = "ifany" ) %>%
+  arrange(Freq) %>%
+  kable(row.names = F) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+### Plot
+
+```{r n_cells, echo=TRUE, fig.width=6, fig.height=5}
+df = as.data.frame(table(cells_sample, useNA = "ifany"))
+colnames(df) <- c("Sample", "Frequency")
+
+ggplot(data=df, aes(x=reorder(Sample, Frequency), y=Frequency)) +
+  geom_bar(stat="identity", fill="#FA8072")+
+  geom_text(aes(label=Frequency), vjust=-1, hjust=0.5, color="black", size=3.5) +
+  theme_classic() +
+  easy_rotate_x_labels(angle = 45, side = "righ") +
+  labs(y = "Number of cells", x = "Sample")
+            
+```
+
+## Diverse features
+### Violin. Assay: RNA
+
+Each dot is a cell. 
+
+Feature = gene.
+
+Count = reads. 
+
+```{r violin_mito, fig.width=20, fig.height=6, dpi=300}
+# Visualize QC metrics as a violin plot
+VlnPlot(mynd, features = c("nFeature_RNA", "nCount_RNA", "percent.mito"), ncol = 3, group.by = "HTO")
+```
+
+## Doublets? 
+Do we have doublets? 
+Nops. Only singlets. 
+```{r check_doublets}
+unique(mynd@meta.data$singlet.or.not.binary)
+```
+
+## Correlation plots
+## Feature-feature: RNA 
+Each dot is one cell. Each color is one sample. 
+```{r scatter_plots_rna, fig.width=10, fig.height=5}
+# FeatureScatter is typically used to visualize feature-feature relationships, but can be used
+# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
+
+plot1 <- FeatureScatter(mynd, feature1 = "nCount_RNA", feature2 = "percent.mito", group.by = "HTO") + 
+  theme(legend.position = 'none')
+
+plot2 <- FeatureScatter(mynd, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "HTO") +
+  theme(legend.position = 'none')
+
+plot1 + plot2 
+```
+
