@@ -67,14 +67,14 @@ deg_lists[deg_lists$GeneSymbol %in% smajic_g ,]
 # 752 ENSG00000165181.16 1.002660 0.8526278 2.904606 0.005557226 0.14547884 2.772823      SHOC1
 
 # Contigence table for Fisher's exact test
-# a = Smajic in overlap = 3g  
-# b = DGE mic 222 - 3 = 219g
-# c = Smajic - overlap = 26g 
+# a = Smajic in overlap = 2g  
+# b = DGE mic 222 - 2 = 220g
+# c = Smajic - overlap = 27g 
 # d = Total non_DGE = 19728 - 222 = 19506g
 
-a = 3
-b = 219
-c = 26
+a = 2
+b = 220
+c = 27
 d = 19506
 
 contigence_table = matrix(c(a, c, b, d), nrow = 2)
