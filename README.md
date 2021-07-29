@@ -10,7 +10,7 @@ MyND Project
 Analysis Pages
 **************
 1. PD Monocyte Analysis:
-   - [Monocyte Quality Control](https://htmlpreview.github.io/?https://github.com/RajLabMSSM/MyND-Analysis/qc/mynd_qc_output.html)
+   - [Monocyte Quality Control](https://github.com/RajLabMSSM/MyND-Analysis/qc/mynd_qc_output.html)
    - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/qc/var.part.all.html)
    - [Differential Gene Expression Result Summary](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/de/dge/test.html)
    - [L-Dopa Correlation](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/de/ldopa/ldopacorr.html)
