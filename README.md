@@ -10,7 +10,7 @@ MyND Project
 Analysis Pages
 **************
 1. Monocyte Analysis:
-  - [Monocyte Quality Control](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/qc//mynd_qc_output.html)
+  - [Monocyte Quality Control](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/qc/mynd_qc_output.html)
   - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/qc/var.part.all.html)
   - [Differential Gene Expression Result Summary](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/de/dge/test.html)
   - [L-Dopa Correlation](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/de/ldopa/ldopacorr.html)
@@ -18,7 +18,7 @@ Analysis Pages
 
 
 2. Microglia dataset 36 PD vs 116 CT: 
-  - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/microglia_analysis/01_vp.html). Cannonical correlation and violin plots from Variance Partition. 
+  - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/mynd_revision/microglia_analysis/01_vp.html). Cannonical correlation and violin plots from Variance Partition. 
   - [Differential expression analysis](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/mynd_revision/microglia_analysis/02_deg_pdxct_dupCor_death.html). The model accounts for PMI and cause of death. Tool = Limma with Duplicate correlation to account for repeated measures. 
  
 
