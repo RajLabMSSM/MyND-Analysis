@@ -25,7 +25,7 @@ Analysis Pages
    - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/amp-pd/vp.html)
    - [Differential Gene Expression Result Summary](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/amp-pd/output.html)
 
-4. Scripts
+4. Analysis Scripts
    - [Monocyte DGE](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/scripts/monocyte_dge.R)
    - [Monocyte DTE](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/scripts/monocyte_dte.R)
    - [Microglia DGE](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/scripts/microglia_dge.Rmd)
