@@ -10,11 +10,11 @@ MyND Project
 Analysis Pages
 **************
 1. PD Monocyte Analysis:
-   - [Monocyte Quality Control](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/qc/mynd_qc_output.html)
-   - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/qc/var.part.all.html)
-   - [Differential Gene Expression Result Summary](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/de/dge/test.html)
-   - [L-Dopa Correlation](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/de/ldopa/ldopacorr.html)
-   - [WGCNA Eigengene approach](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/mynd_revision/eigen_approach/eigen_approach.html). Beeswarm plots for the Figures 3A and 3B.
+   - [Monocyte Quality Control](https://raw.githubusercontent.com/RajLabMSSM/MyND-Analysis/master/qc/mynd_qc_output.html)
+   - [Variance Partition](https://raw.githubusercontent.com/RajLabMSSM/MyND-Analysis/master/qc/var.part.all.html)
+   - [Differential Gene Expression Result Summary](https://raw.githubusercontent.com/RajLabMSSM/MyND-Analysis/master/de/dge/test.html)
+   - [L-Dopa Correlation](https://raw.githubusercontent.com/RajLabMSSM/MyND-Analysis/master/de/ldopa/ldopacorr.html)
+   - [WGCNA Eigengene approach](https://raw.githubusercontent.com/RajLabMSSM/MyND-Analysis/master/mynd_revision/eigen_approach/eigen_approach.html). Beeswarm plots for the Figures 3A and 3B.
 
 2. Microglia dataset 36 PD vs 116 CT: 
    - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/mynd_revision/microglia_analysis/01_vp.html). Cannonical correlation and violin plots from Variance Partition. 
