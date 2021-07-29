@@ -1,0 +1,261 @@
+---
+title: "DEG analysis"
+subtitle: "PD x CT"
+author:  |
+ | Katia de Paiva Lopes 
+ | Raj Lab
+ | Department of Neuroscience
+ | Icahn School of Medicine at Mount Sinai
+ | NYC, New York
+date: "`r Sys.Date()`"
+output: 
+ rmarkdown::html_document:
+   theme: united
+   highlight: tango
+   code_folding: hide
+   toc: true
+   toc_float: true
+   df_print: paged
+   smooth_scroll: true
+   number_sections: false
+   self_contained: true  
+---
+
+> Microglia samples | PD and CT | Limma with Duplicate Correlation. 
+
+```{r clean.variables, echo=FALSE}
+#This command clean all variables. BE CAREFULL!!! 
+rm(list = setdiff(ls(), lsf.str()))
+```
+
+```{r load.packages, echo=FALSE, message=FALSE, results='hide'}
+if(!require("variancePartition")) install.packages("variancePartition"); library("variancePartition")
+if(!require("limma")) install.packages("limma"); library("limma")
+if(!require("stats")) install.packages("stats"); library("stats")
+if(!require("ggfortify")) install.packages("ggfortify"); library("ggfortify")
+if(!require("gplots")) install.packages("gplots"); library("gplots")
+if(!require("factoextra")) install.packages("factoextra"); library("factoextra")
+if(!require("pamr")) BiocManager::install("pamr"); library("pamr")
+if(!require("DESeq2")) BiocManager::install("DESeq2"); library("DESeq2")
+if(!require("edgeR")) BiocManager::install("edgeR"); library("edgeR")
+if(!require("broom")) BiocManager::install("broom"); library("broom")
+if(!require("tidyverse")) BiocManager::install("tidyverse"); library("tidyverse")
+if(!require("reshape2")) install.packages("reshape2"); library("reshape2")
+
+knitr::opts_chunk$set( 
+  warning=FALSE,
+  message=FALSE,
+  results = 'asis',
+  error = FALSE,
+  tidy = FALSE,
+  fig.show = "hold")
+```
+
+```{r Helper Functions, echo=FALSE}
+createDT <- function(DF, caption="", scrollY=500){
+  data <- DT::datatable(DF, caption=caption,
+    extensions =  'Buttons',
+    options = list( dom = 'Bfrtip', 
+                    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
+                    scrollY = scrollY, scrollX=T, scrollCollapse = T, paging = F,  
+                      columnDefs = list(list(className = 'dt-center', targets = "_all"))
+    )
+  ) 
+   return(data)
+}
+```
+
+```{r folders, echo=TRUE}
+# gene_lists = "~/pd-omics/katia/Microglia/GeneLists_4analysis/"
+work_dir = "~/pd-omics/katia/MyND/mynd_rev1/microglia_PDxCT/"
+expression_dir = "~/pd-omics/katia/MyND/mynd_rev1/microglia_PDxCT/"
+metadata_path = "~/pd-omics/katia/MyND/mynd_rev1/microglia_PDxCT/join_metadata/"
+```
+
+```{r input.metadata, echo=TRUE}
+## Input data 
+load(paste0(metadata_path, "metadata_PD_CT_mic.Rdata"))
+
+# Transforms characters columns in factors columns 
+indx <- sapply(join_metadata, is.character)
+join_metadata[indx] <- lapply(join_metadata[indx], function(x) as.factor(x))
+join_metadata$ph = as.numeric(as.character(join_metadata$ph))
+# str(join_metadata) #shows class for all columns 
+rownames(join_metadata) = join_metadata$donor_tissue
+
+load(paste0(expression_dir, "expression_data/mic_pd_ct_filt.Rdata")) 
+# dim(counts1) #17489   154
+ 
+samples_case = as.character(join_metadata$donor_tissue[join_metadata$main_diagnosis %in% "Parkinson"])
+samples_control = as.character(join_metadata$donor_tissue[join_metadata$main_diagnosis %in% "Control"])
+
+# We don't know the tissues of these 2 samples, so I'll remove it for the DE analysis. I canot fit a model for it. 
+# MG-03-RNA
+# MG-02-RNA
+
+counts1 = counts1[, !colnames(counts1) %in% "MG-03-RNA"]
+join_metadata = join_metadata[!rownames(join_metadata)  %in% "MG-03-RNA", ]
+samples_control = samples_control[!samples_control %in% "MG-03-RNA"]
+
+counts1 = counts1[, !colnames(counts1) %in% "MG-02-RNA"]
+join_metadata = join_metadata[!rownames(join_metadata)  %in% "MG-02-RNA", ]
+samples_control = samples_control[!samples_control %in% "MG-02-RNA"]
+
+# table(join_metadata$main_diagnosis)
+```
+
+## Samples for DEG
+### Number of case samples 
+```{r num.cases, echo=TRUE}
+length(samples_case)
+```
+
+### Case samples
+```{r samples.case, echo=TRUE}
+samples_case
+```
+
+### Number of control samples 
+```{r num.control, echo=TRUE}
+length(samples_control)
+```
+
+### Control samples
+```{r samples.control, echo=TRUE}
+samples_control
+```
+
+## Design {.tabset .tabset-fade .tabset-pills} 
+```{r design1, echo=TRUE}
+metadata4deg <- join_metadata
+genes_counts4deg <- counts1
+
+metadata4deg$cause_of_death_categories[metadata4deg$cause_of_death_categories %in% NA] <- "Other"
+
+design.dupcor1 <- model.matrix(~ main_diagnosis + pmd_minutes + batch + cause_of_death_categories + sex + age + tissue + picard_pct_mrna_bases + picard_pct_pf_reads_aligned + picard_pct_ribosomal_bases, data = metadata4deg)
+
+genes_counts4deg <- DGEList(genes_counts4deg)
+genes_counts4deg <- calcNormFactors(genes_counts4deg)
+genes_voom4deg <- voom(genes_counts4deg, design.dupcor1)
+
+# Estimate linear mixed model 
+# Fit the model for each gene
+dupcor <- duplicateCorrelation(genes_voom4deg, design.dupcor1, block = metadata4deg$donor_id)
+# run voom considering the duplicateCorrelation results
+vobj <- voom(genes_counts4deg, design.dupcor1, block=metadata4deg$donor_id, correlation=dupcor$consensus)
+# Estimate linear mixed model with a single variance component
+# Fit the model for each gene
+dupcor2 <- duplicateCorrelation(vobj, design.dupcor1, block = metadata4deg$donor_id)
+fitDupcor <- lmFit(vobj, design.dupcor1, block = metadata4deg$donor_id, correlation = dupcor2$consensus)
+fitDupcor <- eBayes(fitDupcor)
+# topTable(fitDupcor, coef = "main_diagnosisParkinson") # Default is 10 lines 
+
+resPD <- data.frame(topTable(fitDupcor, coef = "main_diagnosisParkinson",
+                             number = nrow(genes_counts4deg), sort.by = "p"), check.names = F)
+# design.dupcor1
+```
+
+### P Value Distribution {.tabset .tabset-fade .tabset-pills}
+```{r design0.pvalue, echo=TRUE, res=300}
+res = resPD
+p = ggplot(res, aes(P.Value))
+p + geom_density(color="darkblue", fill="lightblue") +
+  theme_bw() +
+  ggtitle("FDR Distribution")
+```
+
+### Fold Change Distribution {.tabset .tabset-fade .tabset-pills}
+```{r design0.FC, echo=TRUE, res = 300}
+p = ggplot(res, aes(logFC))
+p + geom_density(color = "darkblue", fill = "lightblue") + 
+  theme_bw() +
+  ggtitle("Fold Change Distribution")
+```
+
+### MA Plot {.tabset .tabset-fade .tabset-pills}
+```{r design0.MA, echo=TRUE, res = 300}
+plot.data = res
+plot.data$id = rownames(plot.data)
+data = data.frame(plot.data)
+data$P.Value = -log10(data$P.Value)
+data$fifteen = as.factor(abs(data$adj.P.Val < 0.15))
+
+ma = ggplot(data, aes(AveExpr, logFC, color = fifteen))
+ma + geom_point() +
+  scale_color_manual(values = c("black", "red"), labels = c ("> 0.15", "< 0.15")) +
+  labs(title = "MA plot", color = "labels") +
+  theme(plot.title = element_text(hjust = 0.5)) + ylim (-10,10) + xlim(-4,22)
+
+```
+
+### Volcano Plot {.tabset .tabset-fade .tabset-pills}
+```{r design0.Volcano, echo=TRUE, res = 300}
+vp = ggplot(data, aes(logFC, P.Value, color = fifteen))
+vp + geom_point() +
+  scale_color_manual(values = c("black", "red"), labels = c("> 0.15", "< 0.15")) + 
+  labs(title = "Gene Level Volcano Plot", color = "FDR") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlim(-10,10) + ylim(0, 10) + ylab("-log10 pvalue")
+
+```
+
+## DE genes 15% 
+```{r design0.deg015, echo=TRUE, results='asis'}
+length(which(res$adj.P.Val<0.15))
+```
+
+## DE genes 10% 
+```{r design0.deg010, echo=TRUE, results='asis'}
+length(which(res$adj.P.Val<0.10))
+```
+
+## DE genes 5% 
+```{r design0.deg005, echo=TRUE, results='asis'}
+length(which(res$adj.P.Val<0.05))
+```
+
+## DEG table for download
+```{r design0.lists, echo=TRUE}
+## Get conversion table for Gencode 30
+gencode_30 = read.table("~/pd-omics/katia/ens.geneid.gencode.v30")
+#gencode_30 = read.table("/Users/katia/OneDrive/Documentos/MountSinai/Projects/ens.geneid.gencode.v30", header = T)
+colnames(gencode_30) = c("ensembl","symbol")
+
+res$ensembl = rownames(res)
+res_name = merge(res, gencode_30, by="ensembl")
+rownames(res_name) = res_name$ensembl
+res_name = res_name[order(res_name$adj.P.Val), ]
+res_name = res_name[, c("symbol", "logFC", "AveExpr", "t", "P.Value", "adj.P.Val", "B")]
+   
+deg_lists = res_name[which(res_name$adj.P.Val<0.15),]
+createDT(res_name)
+
+write.table(res_name, file = paste0(work_dir, "deg_allgenes_PDxCT_dupCor_death.txt"), quote = F, sep = "\t")
+```
+
+### Directionality 
+LogFC > 0 is up in Case. 
+```{r direction5, echo=TRUE, fig.width=10, fig.height=8, res=300}
+top_6 = head(res_name)
+top_6$ensembl = rownames(top_6)
+rownames(metadata4deg) = metadata4deg$donor_tissue
+genes_voom = genes_voom4deg
+gene2check = as.data.frame( genes_voom[rownames(top_6) ,])
+gene2check$ensembl = rownames(gene2check)
+gene2check = merge(gene2check, top_6[, c("symbol", "ensembl")], by = "ensembl")
+
+gene2check_m = melt(gene2check, id.vars = c("ensembl", "symbol"))
+gene2check_charac = merge(gene2check_m, metadata4deg, by.x = "variable", by.y = "donor_tissue")
+
+ggplot(gene2check_charac, aes(x = main_diagnosis, y = value, fill = main_diagnosis)) +
+  geom_boxplot(notch = F, na.rm = T, outlier.color = NA) +
+  geom_jitter() +
+  theme_classic() + 
+  facet_wrap(~symbol, scales = "free_y") +
+  ggpubr::stat_compare_means(label = "p.format", label.x.npc = "centre", method = "wilcox.test")
+```
+
+```{r session, echo=TRUE}
+sessionInfo()
+```
+
