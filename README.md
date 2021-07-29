@@ -23,9 +23,9 @@ Analysis Pages
  
 
 3. AMP-PD Analyses
-  - [AMP-PD Qualtiy Control](https://github.com/RajLabMSSM/MyND-Analysis/ampqc.html)
-  - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/amp-pd/vp.html)
-  - [Differential Gene Expression Result Summary](https://github.com/RajLabMSSM/MyND-Analysis/amp-pd/output.html)
+  - [AMP-PD Qualtiy Control](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/amp-pd/ampqc.html)
+  - [Variance Partition](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/amp-pd/vp.html)
+  - [Differential Gene Expression Result Summary](https://github.com/RajLabMSSM/MyND-Analysis/blob/master/amp-pd/output.html)
 
 
 4. Scripts
